@@ -25,6 +25,7 @@ def interactive_chat() -> None:
     print("\nWelcome! Ask me about:")
     print("  • Provide executive summary of performance for HQ")
     print("  • Show HQ performance for the Buscuits in July 2025")
+    print("  • Give me the HQ biscuit results please")
     print("  • What countries are in Brazil")
     print("  • Results vs forecast for top countries")
     print(
