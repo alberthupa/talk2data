@@ -7,7 +7,7 @@ import os
 
 from tenacity import retry, wait_random_exponential, stop_after_attempt, wait_fixed
 
-from llm_clients import create_llm_client
+from llms.llm_clients import create_llm_client
 
 
 def translate_messages_from_openai_to_gemini(
@@ -32,8 +32,8 @@ def translate_messages_from_openai_to_gemini(
 
 class BasicAgent:
     def __init__(self):
-        """Initializes the BasicAgent, loading configuration. brraaa"""
-        config_path = os.path.join("skeleton_codes", "llms", "llm_config.yaml")
+        """Initializes the BasicAgent, loading configuration."""
+        config_path = "llm_config.yaml"
         try:
             with open(config_path, "r") as file:
                 config = yaml.safe_load(file)

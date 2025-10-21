@@ -90,9 +90,14 @@ Important:
 Generate the response now:"""
 
     try:
-        print("[ANSWERING NODE] Generating response with Azure OpenAI...")
-        completion = backend._llm_client.chat.completions.create(
-            model=backend._deployment_name,
+        print("[ANSWERING NODE] Generating response with LLM...")
+
+        # Get LLM client info from state
+        llm_model_input = state.get("llm_model_input", backend._default_llm_model)
+
+        # Use BasicAgent to get text response
+        response_dict = backend._llm_agent.get_text_response_from_llm(
+            llm_model_input=llm_model_input,
             messages=[
                 {
                     "role": "system",
@@ -100,11 +105,9 @@ Generate the response now:"""
                 },
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.7,
-            max_tokens=1000,
         )
 
-        generated_response = completion.choices[0].message.content
+        generated_response = response_dict.get("text_response")
 
         if not generated_response:
             generated_response = (

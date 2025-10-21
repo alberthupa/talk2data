@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from pydantic import Field, create_model
+from llms.structured_output import get_structured_response
 
 if TYPE_CHECKING:
     from flow_backend import ConversationState, FlowBackend
@@ -89,78 +90,84 @@ The parameters must match the examples provided when they are specified.
 Respond with the extracted parameter values.
 """
 
-    for attempt in range(5):
-        try:
-            completion = backend._llm_client.beta.chat.completions.parse(
-                model=backend._deployment_name,
-                messages=[{"role": "user", "content": prompt}],
-                response_format=DynamicParamModel,
-            )
-            parsed_output = completion.choices[0].message.parsed
+    # Get LLM client from state
+    client = state.get("llm_client")
+    model_location = state.get("llm_model_location")
+    model_name = state.get("llm_model_name")
 
-            if parsed_output:
-                extracted_params = parsed_output.model_dump()
+    if not client or not model_location or not model_name:
+        print("[PARAMETER EXTRACTION] LLM client not initialized in state")
+        return {"extracted_params": {}}
 
-                print(f"[PARAMETER EXTRACTION] Query type: {query_type}")
-                print(f"[PARAMETER EXTRACTION] Extracted parameters:")
-                for key, value in extracted_params.items():
-                    print(f"  - {key}: {value}")
+    # Use structured output module
+    parsed_output = get_structured_response(
+        client=client,
+        model_location=model_location,
+        model_name=model_name,
+        messages=[{"role": "user", "content": prompt}],
+        response_model=DynamicParamModel,
+        max_retries=5,
+    )
 
-                missing_params: list[dict[str, Any]] = []
-                uncertain_indicators = [
-                    "unspecified",
-                    "unknown",
-                    "not mentioned",
-                    "unclear",
-                    "not provided",
-                    "n/a",
-                    "na",
-                ]
+    if parsed_output:
+        extracted_params = parsed_output.model_dump()
 
-                for input_spec in question_inputs:
-                    param_name = input_spec["name"]
-                    param_value = extracted_params.get(param_name)
+        print(f"[PARAMETER EXTRACTION] Query type: {query_type}")
+        print(f"[PARAMETER EXTRACTION] Extracted parameters:")
+        for key, value in extracted_params.items():
+            print(f"  - {key}: {value}")
 
-                    is_uncertain = False
-                    if param_value is None or param_value == "":
-                        is_uncertain = True
-                    elif isinstance(param_value, str) and any(
-                        indicator in param_value.lower()
-                        for indicator in uncertain_indicators
-                    ):
-                        is_uncertain = True
+        missing_params: list[dict[str, Any]] = []
+        uncertain_indicators = [
+            "unspecified",
+            "unknown",
+            "not mentioned",
+            "unclear",
+            "not provided",
+            "n/a",
+            "na",
+        ]
 
-                    if is_uncertain:
-                        missing_params.append(
-                            {
-                                "name": param_name,
-                                "type": input_spec["type"],
-                                "example": input_spec["example"],
-                            }
-                        )
+        for input_spec in question_inputs:
+            param_name = input_spec["name"]
+            param_value = extracted_params.get(param_name)
 
-                if missing_params:
-                    print(
-                        "[PARAMETER EXTRACTION] Missing or uncertain parameters detected: "
-                        f"{[param['name'] for param in missing_params]}"
-                    )
-                    return {
-                        "extracted_params": extracted_params,
-                        "missing_params": missing_params,
-                        "awaiting_clarification": True,
+            is_uncertain = False
+            if param_value is None or param_value == "":
+                is_uncertain = True
+            elif isinstance(param_value, str) and any(
+                indicator in param_value.lower()
+                for indicator in uncertain_indicators
+            ):
+                is_uncertain = True
+
+            if is_uncertain:
+                missing_params.append(
+                    {
+                        "name": param_name,
+                        "type": input_spec["type"],
+                        "example": input_spec["example"],
                     }
+                )
 
-                print("[PARAMETER EXTRACTION] All parameters successfully extracted")
-                return {
-                    "extracted_params": extracted_params,
-                    "missing_params": None,
-                    "awaiting_clarification": False,
-                }
+        if missing_params:
+            print(
+                "[PARAMETER EXTRACTION] Missing or uncertain parameters detected: "
+                f"{[param['name'] for param in missing_params]}"
+            )
+            return {
+                "extracted_params": extracted_params,
+                "missing_params": missing_params,
+                "awaiting_clarification": True,
+            }
 
-        except Exception as exc:
-            if attempt == 4:
-                print(f"[PARAMETER EXTRACTION] Failed after 5 attempts: {exc}")
-                return {"extracted_params": {}}
-            print(f"[PARAMETER EXTRACTION] Attempt {attempt + 1} failed: {exc}")
+        print("[PARAMETER EXTRACTION] All parameters successfully extracted")
+        return {
+            "extracted_params": extracted_params,
+            "missing_params": None,
+            "awaiting_clarification": False,
+        }
 
+    # Fallback if structured output failed
+    print("[PARAMETER EXTRACTION] Failed to extract parameters")
     return {"extracted_params": {}}

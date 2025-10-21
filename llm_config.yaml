@@ -26,6 +26,7 @@ llm_location:
     - deepseek/deepseek-chat
     - deepseek/deepseek-r1:free
     - cohere/command-r7b-12-2024
+    - mistralai/mistral-7b-instruct-v0.2
   deepseek:
     - deepseek-chat
     - deepseek-reasoner

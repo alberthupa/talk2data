@@ -20,7 +20,8 @@ from functools import partial
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
-from openai import AzureOpenAI
+from llms.basic_agent import BasicAgent
+from llms.llm_clients import create_llm_client
 from nodes import (
     answering_node as answering_node_impl,
     clarification_node as clarification_node_impl,
@@ -45,6 +46,11 @@ class ConversationState(TypedDict):
     sql_query: str | None
     sql_results: dict | None
     display_dataframe: dict | None
+    # LLM client management
+    llm_model_input: str | None
+    llm_client: Any | None
+    llm_model_location: str | None
+    llm_model_name: str | None
 
 
 @dataclass(slots=True)
@@ -63,18 +69,19 @@ class FlowBackend:
         *,
         env_path: str | os.PathLike[str] | None = ".env",
         scenarios_path: str | os.PathLike[str] = "scenarios.json",
-        llm_client: AzureOpenAI | None = None,
+        llm_model_input: str = "gpt-4o",
         db_path: str | os.PathLike[str] = "sql_data.db",
     ) -> None:
         if env_path:
             load_dotenv(env_path, override=True)
 
-        self._openai_api_version = os.environ.get("OPENAI_API_VERSION")
-        self._azure_api_key = os.environ.get("AZURE_OPENAI_API_KEY")
-        self._azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
-        self._deployment_name = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
+        # Store default LLM model
+        self._default_llm_model = llm_model_input
 
-        self._llm_client = llm_client or self._build_llm_client()
+        # Initialize BasicAgent for text responses
+        self._llm_agent = BasicAgent()
+
+        # Load scenarios and build descriptions
         self._scenarios = self._load_scenarios(Path(scenarios_path))
         self._question_descriptions = self._build_question_descriptions(self._scenarios)
 
@@ -100,6 +107,10 @@ class FlowBackend:
             "sql_query": None,
             "sql_results": None,
             "display_dataframe": None,
+            "llm_model_input": None,
+            "llm_client": None,
+            "llm_model_location": None,
+            "llm_model_name": None,
         }
 
     def run_conversation(
@@ -112,6 +123,16 @@ class FlowBackend:
         """
         state = conversation_state or self.create_initial_state()
         previous_len = len(state["messages"])
+
+        # Initialize LLM client if needed
+        client, location, model_name = self._initialize_llm_client(state)
+        if client is None:
+            # Failed to initialize client
+            error_msg = AIMessage(
+                content="Failed to initialize LLM client. Please check your configuration."
+            )
+            state["messages"].append(error_msg)
+            return ConversationTurnResult(state=state, new_messages=[error_msg])
 
         # Clear stale tabular data before processing the new turn
         state["display_dataframe"] = None
@@ -231,20 +252,57 @@ class FlowBackend:
             raise FileNotFoundError(f"Database file not found at {self._db_path}")
         print(f"[DATABASE] SQLite database available at {self._db_path}")
 
-    def _build_llm_client(self) -> AzureOpenAI:
-        if not all(
-            [self._azure_endpoint, self._azure_api_key, self._openai_api_version]
+    def _initialize_llm_client(
+        self, state: ConversationState
+    ) -> tuple[Any, str, str] | tuple[None, None, None]:
+        """
+        Initialize or retrieve LLM client from state.
+
+        Args:
+            state: Current conversation state
+
+        Returns:
+            Tuple of (client, location, model_name) or (None, None, None) if initialization fails
+        """
+        # Determine which model to use (state overrides default)
+        llm_model_input = state.get("llm_model_input") or self._default_llm_model
+
+        # Check if we need to (re)initialize
+        current_model_input = state.get("llm_model_input")
+        if (
+            state.get("llm_client") is None
+            or current_model_input != llm_model_input
         ):
-            raise RuntimeError(
-                "Azure OpenAI environment variables are not fully configured. "
-                "Expected AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, OPENAI_API_VERSION."
+            print(f"[LLM CLIENT] Initializing client for: {llm_model_input}")
+
+            client, location, model_name = create_llm_client(
+                llm_model_input, self._llm_agent.llm_model_dict
             )
 
-        return AzureOpenAI(
-            azure_endpoint=self._azure_endpoint,
-            api_key=self._azure_api_key,
-            api_version=self._openai_api_version,
-        )
+            if client is None:
+                print(
+                    f"[LLM CLIENT] Failed to create client for {llm_model_input}"
+                )
+                return None, None, None
+
+            # Update state with new client info
+            state["llm_client"] = client
+            state["llm_model_location"] = location
+            state["llm_model_name"] = model_name
+            state["llm_model_input"] = llm_model_input
+
+            print(
+                f"[LLM CLIENT] Initialized {location}:{model_name}"
+            )
+
+            return client, location, model_name
+        else:
+            # Return existing client from state
+            return (
+                state["llm_client"],
+                state["llm_model_location"],
+                state["llm_model_name"],
+            )
 
     def _load_scenarios(self, path: Path) -> list[dict[str, Any]]:
         if not path.exists():

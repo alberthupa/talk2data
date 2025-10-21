@@ -7,6 +7,7 @@ Relies on FlowBackend to handle all business logic while Streamlit manages UX.
 from __future__ import annotations
 
 import json
+import yaml
 import pandas as pd
 import streamlit as st
 
@@ -26,19 +27,82 @@ def _load_scenarios() -> list:
         return []
 
 
+def _load_llm_config() -> dict:
+    """Load available LLM models from llm_config.yaml."""
+    try:
+        with open("llm_config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+            return config.get("llm_location", {})
+    except FileNotFoundError:
+        st.warning("llm_config.yaml not found. Using default model.")
+        return {}
+    except yaml.YAMLError:
+        st.error("Error parsing llm_config.yaml.")
+        return {}
+
+
 def _ensure_session_state(backend: FlowBackend) -> None:
     if "flow_state" not in st.session_state:
         st.session_state["flow_state"] = backend.create_initial_state()
     if "latest_new_messages" not in st.session_state:
         st.session_state["latest_new_messages"] = []
+    if "selected_llm_model" not in st.session_state:
+        st.session_state["selected_llm_model"] = "gpt-4o"
 
 
-def _render_sidebar(state: dict, backend: FlowBackend) -> None:
+def _render_sidebar(state: dict, backend: FlowBackend, llm_config: dict) -> None:
     with st.sidebar:
+        st.header("⚙️ Settings")
+
+        # LLM Model Selection
+        st.subheader("LLM Model")
+
+        # Build list of available models
+        model_options = []
+        for location, models in llm_config.items():
+            for model in models:
+                model_options.append(f"{location}:{model}")
+
+        # Add default option if no config
+        if not model_options:
+            model_options = ["gpt-4o"]
+
+        # Current model from session state
+        current_model = st.session_state.get("selected_llm_model", "gpt-4o")
+
+        # Find index of current model
+        try:
+            current_index = model_options.index(current_model)
+        except ValueError:
+            current_index = 0
+
+        selected_model = st.selectbox(
+            "Select LLM Model",
+            options=model_options,
+            index=current_index,
+            help="Choose which LLM model to use for the conversation"
+        )
+
+        # Update state if model changed
+        if selected_model != st.session_state.get("selected_llm_model"):
+            st.session_state["selected_llm_model"] = selected_model
+            # Update the state's LLM model input to trigger reinitialization
+            if "flow_state" in st.session_state:
+                st.session_state["flow_state"]["llm_model_input"] = selected_model
+                # Clear client to force reinitialization
+                st.session_state["flow_state"]["llm_client"] = None
+            st.info(f"Switched to: {selected_model}")
+
+        st.markdown("---")
+
         st.header("Conversation Status")
         st.write(f"**Query type**: {state.get('query_type') or '—'}")
         certainty = state.get("certainty")
         st.write(f"**Certainty**: {certainty if certainty is not None else '—'} / 10")
+
+        # Show current LLM in use
+        current_llm = state.get("llm_model_input") or "Not initialized"
+        st.write(f"**Active LLM**: {current_llm}")
 
         if state.get("awaiting_confirmation"):
             st.info("Awaiting your confirmation (yes/no).")
@@ -110,11 +174,17 @@ def main() -> None:
         "extracts required parameters, and returns insightful answers."
     )
 
-    backend = get_backend()
+    # Load LLM configuration
+    llm_config = _load_llm_config()
+
+    # Initialize or get backend with selected model
+    selected_model = st.session_state.get("selected_llm_model", "gpt-4o")
+    backend = FlowBackend(llm_model_input=selected_model)
+
     _ensure_session_state(backend)
 
     state = st.session_state["flow_state"]
-    _render_sidebar(state, backend)
+    _render_sidebar(state, backend, llm_config)
 
     # Create four tabs
     tab1, tab2, tab3, tab4 = st.tabs(["Intro", "Chat", "Scenarios", "Source Data"])

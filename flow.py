@@ -7,20 +7,25 @@ all conversation logic to the FlowBackend module.
 
 from __future__ import annotations
 
+import sys
 from langchain_core.messages import AIMessage
 
 from flow_backend import FlowBackend
 
 
-def interactive_chat() -> None:
+def interactive_chat(llm_model: str = "gpt-4o") -> None:
     """
     Interactive terminal chat interface.
+
+    Args:
+        llm_model: LLM model to use (e.g., "gpt-4o", "azure_openai:gpt-4o", "groq:llama-3.1-8b-instant")
     """
-    backend = FlowBackend()
+    backend = FlowBackend(llm_model_input=llm_model)
     state = backend.create_initial_state()
 
     print("=" * 60)
     print("MARKET QUERY ASSISTANT - Interactive Chat")
+    print(f"Using LLM: {llm_model}")
     print("=" * 60)
     print("\nWelcome! Ask me about:")
     print("  • Provide executive summary of performance for HQ")
@@ -58,4 +63,14 @@ def interactive_chat() -> None:
 
 
 if __name__ == "__main__":
-    interactive_chat()
+    # Check for command-line argument for LLM model
+    llm_model = "gpt-4o"  # default
+    if len(sys.argv) > 1:
+        llm_model = sys.argv[1]
+        print(f"[INFO] Using LLM model from command line: {llm_model}\n")
+    else:
+        print(f"[INFO] Using default LLM model: {llm_model}")
+        print("[INFO] To use a different model, run: python flow.py <model_name>")
+        print("[INFO] Examples: python flow.py groq:llama-3.1-8b-instant\n")
+
+    interactive_chat(llm_model)
