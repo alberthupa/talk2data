@@ -3,7 +3,7 @@ import os
 import yaml
 from openai import AzureOpenAI, OpenAI
 from groq import Groq
-import google.generativeai as genai
+from google import genai
 
 load_dotenv()
 
@@ -79,16 +79,8 @@ def create_llm_client(llm_model_input: str, llm_model_dict: dict):
             api_key = os.environ.get("GEMINI_API_KEY")
             if not api_key:
                 raise ValueError("GEMINI_API_KEY environment variable not set.")
-            genai.configure(api_key=api_key)
-            # Configuration can be set per-request if needed, simplifying client creation
-            generation_config = {
-                "temperature": 0,  # Default, can be overridden
-                "response_mime_type": "text/plain",
-                "max_output_tokens": 8192,  # Default, can be overridden
-            }
-            client = genai.GenerativeModel(
-                model_name=resolved_model_name,
-                generation_config=generation_config,  # Apply default config
+            client = genai.Client(
+                api_key=api_key,
             )
         else:
             print(f"Error: Unknown model location '{model_location}'.")

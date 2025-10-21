@@ -6,28 +6,66 @@ import os
 # import re
 
 from tenacity import retry, wait_random_exponential, stop_after_attempt, wait_fixed
+from google.genai import types as genai_types
 
 from llms.llm_clients import create_llm_client
 
 
 def translate_messages_from_openai_to_gemini(
-    messages_to_change: list[dict[str, str]],
-) -> str:
-    last_message = messages_to_change[-1]["content"]
-    if len(messages_to_change) == 1:
-        gemini_messages = []
-    else:
-        prev_messages = messages_to_change[:-1]
-        gemini_messages = []
-        for message in prev_messages:
-            role = message["role"]
-            content = message["content"]
-            if role == "assistant":
-                role = "model"
+    messages_to_change: list[dict[str, typing.Any]],
+) -> tuple[list[dict[str, typing.Any]], typing.Optional[str]]:
+    """
+    Convert OpenAI chat messages to the Google AI Studio format.
+    Aggregates system prompts into a single instruction string so it can be
+    passed via the `system_instruction` field on the request.
+    """
+    gemini_messages: list[dict[str, typing.Any]] = []
+    system_instruction_segments: list[str] = []
 
-            gemini_messages.append({"role": role, "parts": [content]})
+    for message in messages_to_change:
+        role = message.get("role")
+        content = message.get("content")
 
-    return gemini_messages, last_message
+        if isinstance(content, list):
+            # OpenAI-compatible content can arrive as a list of parts; extract text pieces.
+            text_parts: list[str] = []
+            for part in content:
+                if isinstance(part, dict):
+                    if part.get("type") == "text" and part.get("text"):
+                        text_parts.append(part["text"])
+                    elif part.get("text"):
+                        text_parts.append(str(part["text"]))
+                elif isinstance(part, str):
+                    text_parts.append(part)
+                else:
+                    text_parts.append(str(part))
+            content = "\n".join(p for p in text_parts if p)
+        elif content is None:
+            content = ""
+        elif not isinstance(content, str):
+            content = str(content)
+
+        content = content.strip()
+        if not content:
+            continue
+
+        if role == "system":
+            system_instruction_segments.append(content)
+            continue
+
+        mapped_role = "model" if role == "assistant" else "user"
+        gemini_messages.append(
+            {
+                "role": mapped_role,
+                "parts": [{"text": content}],
+            }
+        )
+
+    system_instruction = (
+        "\n\n".join(system_instruction_segments) if system_instruction_segments else None
+    )
+
+    return gemini_messages, system_instruction
 
 
 class BasicAgent:
@@ -112,17 +150,36 @@ class BasicAgent:
                     reasoning_content = my_response.choices[0].message.reasoning_content
 
             elif model_location == "google_ai_studio":
-                gemini_messages, last_message = (
+                gemini_messages, system_instruction = (
                     translate_messages_from_openai_to_gemini(messages)
                 )
-                if hasattr(llm_client, "start_chat"):
-                    chat_session = llm_client.start_chat(history=gemini_messages)
-                    response = chat_session.send_message(last_message)
-                    text_content = response.text
-
-                else:
-                    print("Error: Gemini client does not have 'start_chat' method.")
+                if not gemini_messages:
+                    print(
+                        "Warning: Gemini request has no user/model messages after translation."
+                    )
                     text_content = None
+                else:
+                    request_kwargs = {
+                        "model": llm_model_name_resolved,
+                        "contents": gemini_messages,
+                    }
+                    if system_instruction:
+                        request_kwargs["config"] = genai_types.GenerateContentConfig(
+                            system_instruction=system_instruction
+                        )
+
+                    response = llm_client.models.generate_content(**request_kwargs)
+                    text_content = getattr(response, "text", None)
+                    if not text_content and hasattr(response, "parts"):
+                        parts = getattr(response, "parts")
+                        if parts:
+                            collected_parts = []
+                            for part in parts:
+                                part_text = getattr(part, "text", None)
+                                if part_text:
+                                    collected_parts.append(part_text)
+                            if collected_parts:
+                                text_content = "\n".join(collected_parts)
 
             else:
                 print(

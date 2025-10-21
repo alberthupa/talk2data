@@ -18,6 +18,7 @@ llm_location:
   google_ai_studio:
     - gemini-1.5-pro
     - gemini-exp-1206
+    - gemini-flash-latest
     - gemini-2.0-flash
     - gemini-2.0-flash-exp
     - gemini-2.0-flash-thinking-exp-01-21
@@ -27,9 +28,11 @@ llm_location:
     - deepseek/deepseek-r1:free
     - cohere/command-r7b-12-2024
     - mistralai/mistral-7b-instruct-v0.2
+    - microsoft/phi-3-medium-128k-instruct
   deepseek:
     - deepseek-chat
     - deepseek-reasoner
   lingaro:
     - gpt-4o-mini
     - grok-3
+    - deepseek-r1
