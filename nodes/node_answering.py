@@ -95,7 +95,6 @@ Generate the response now:"""
         # Get LLM client info from state
         llm_model_input = state.get("llm_model_input", backend._default_llm_model)
 
-        # Use BasicAgent to get text response
         response_dict = backend._llm_agent.get_text_response_from_llm(
             llm_model_input=llm_model_input,
             messages=[
