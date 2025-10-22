@@ -269,6 +269,22 @@ state = result.state
 result2 = backend.run_conversation("What about August?", state)
 ```
 
+### Scenario Detector Pre‑Init (Optional)
+
+- Purpose: Pre-fit the TF‑IDF vectorizer for scenario detection at startup to avoid first‑request latency.
+- How to enable: pass `preinit_scenario_vectorizer=True` when constructing `FlowBackend`.
+
+```python
+from flow_backend import FlowBackend
+
+# Pre-initialize TF-IDF vectorizer using scenarios.json at startup
+backend = FlowBackend(preinit_scenario_vectorizer=True)
+```
+
+- Default behavior: If not enabled, the vectorizer initializes lazily on the first classification.
+- Dependencies: Uses scikit-learn. If unavailable, detection gracefully falls back to `OTHER` with low certainty.
+- Implementation: See `scenario_detector.py` for the detector and cache, and `nodes/node_classifier.py` for the thin caller.
+
 ## Model Selection Guide
 
 ### Format
@@ -286,33 +302,25 @@ Models can be specified in two ways:
 
 **Best Overall Performance:**
 ```bash
-python flow.py azure_openai:gpt-4o
+uv run flow.py azure_openai:gpt-4o
 ```
 
 **Cost-Effective:**
 ```bash
-python flow.py azure_openai:gpt-4o-mini
-python flow.py groq:llama-3.1-8b-instant
+uv run flow.py azure_openai:gpt-4o-mini
+uv run flow.py groq:llama-3.1-8b-instant
 ```
 
 **Fastest Inference:**
 ```bash
-python flow.py groq:llama-3.3-70b-versatile
-python flow.py google_ai_studio:gemini-2.0-flash
+uv run flow.py groq:llama-3.3-70b-versatile
+uv run flow.py google_ai_studio:gemini-2.0-flash
 ```
 
 **Experimental/Advanced:**
 ```bash
-python flow.py deepseek:deepseek-reasoner
-python flow.py google_ai_studio:gemini-2.5-pro-exp-03-25
-```
-
-## Testing
-
-Run the comprehensive test suite:
-
-```bash
-python test_llm_migration.py
+uv run python flow.py deepseek:deepseek-reasoner
+uv run flow.py google_ai_studio:gemini-2.5-pro-exp-03-25
 ```
 
 **Tests verify:**
@@ -329,6 +337,7 @@ talk2data/
 ├── flow_backend.py          # Core conversation engine
 ├── flow_frontend.py         # Streamlit web interface
 ├── flow.py                  # CLI terminal interface
+├── scenario_detector.py     # TF-IDF scenario detection & cache
 │
 ├── llms/                    # LLM infrastructure
 │   ├── llm_clients.py       # Multi-provider client factory
@@ -348,8 +357,6 @@ talk2data/
 ├── llm_config.yaml          # Available LLM models by provider
 ├── sql_data.db              # SQLite database (market data)
 │
-├── test_llm_migration.py    # Test suite
-├── LLM_MIGRATION_SUMMARY.md # Technical architecture doc
 ├── QUICK_START_LLM.md       # User quick start guide
 ├── CLAUDE.md                # Claude Code instructions
 ├── .env                     # API keys (not in repo)
@@ -447,23 +454,3 @@ All available scenarios are documented in the **Scenarios** tab of the Streamlit
    - `answer_template` (example response format)
 2. Test classification with various phrasings
 3. Verify parameter extraction and SQL generation
-
-## License
-
-[Add your license information here]
-
-## Contributing
-
-[Add contribution guidelines here]
-
-## Support
-
-For questions or issues:
-- Review `LLM_MIGRATION_SUMMARY.md` for technical details
-- Check `QUICK_START_LLM.md` for usage examples
-- Run `python test_llm_migration.py` to verify setup
-- Check console logs - they show detailed execution flow
-
----
-
-**Migration Status**: ✅ Fully migrated to multi-provider LLM architecture (January 2025)

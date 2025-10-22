@@ -71,6 +71,7 @@ class FlowBackend:
         scenarios_path: str | os.PathLike[str] = "scenarios.json",
         llm_model_input: str = "gpt-4o",
         db_path: str | os.PathLike[str] = "sql_data.db",
+        preinit_scenario_vectorizer: bool = False,
     ) -> None:
         if env_path:
             load_dotenv(env_path, override=True)
@@ -84,6 +85,16 @@ class FlowBackend:
         # Load scenarios and build descriptions
         self._scenarios = self._load_scenarios(Path(scenarios_path))
         self._question_descriptions = self._build_question_descriptions(self._scenarios)
+
+        # Optionally initialize the TF-IDF vectorizer at startup
+        try:
+            from scenario_detector import initialize as scenario_init
+
+            if preinit_scenario_vectorizer:
+                scenario_init(self._scenarios, enabled=True)
+        except Exception:
+            # Best effort; detector stays lazy if import fails
+            pass
 
         # Initialize SQLite database path (connections are opened per query)
         self._db_path = Path(db_path)
