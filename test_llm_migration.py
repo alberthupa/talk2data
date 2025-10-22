@@ -148,6 +148,39 @@ def test_model_switching():
     print()
 
 
+def test_generic_sql_state():
+    """Test that generic SQL state fields are properly initialized."""
+    print("=" * 60)
+    print("TEST 6: Generic SQL State Fields")
+    print("=" * 60)
+
+    backend = FlowBackend(llm_model_input="gpt-4o")
+    state = backend.create_initial_state()
+
+    generic_sql_fields = [
+        "confirmation_mode",
+        "awaiting_generic_choice",
+        "generic_sql_attempted",
+        "generic_sql_error",
+    ]
+
+    print("Checking generic SQL state fields...")
+    all_present = True
+    for field in generic_sql_fields:
+        if field in state:
+            print(f"  ✓ {field}: {state[field]}")
+        else:
+            print(f"  ✗ Missing field: {field}")
+            all_present = False
+
+    if all_present:
+        print("✓ All generic SQL state fields are present")
+    else:
+        print("✗ Some generic SQL state fields are missing")
+
+    print()
+
+
 def main():
     """Run all tests."""
     print("\n")
@@ -161,6 +194,7 @@ def main():
     test_client_initialization()
     test_conversation_flow_simulation()
     test_model_switching()
+    test_generic_sql_state()
 
     print("=" * 60)
     print("TEST SUITE COMPLETE")

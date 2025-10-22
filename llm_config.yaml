@@ -3,6 +3,7 @@ llm_location:
   azure_openai:
     - gpt-4o
     - gpt-4o-mini
+    - gpt-5
   priv_openai:
     - gpt-4o
     - gpt-4o-mini
@@ -16,13 +17,8 @@ llm_location:
     - llama3-groq-70b-8192-tool-use-preview
     - deepseek-r1-distill-llama-70b
   google_ai_studio:
-    - gemini-1.5-pro
-    - gemini-exp-1206
     - gemini-flash-latest
-    - gemini-2.0-flash
-    - gemini-2.0-flash-exp
-    - gemini-2.0-flash-thinking-exp-01-21
-    - gemini-2.5-pro-exp-03-25
+    - gemini-2.5-pro
   openrouter:
     - deepseek/deepseek-chat
     - deepseek/deepseek-r1:free
@@ -36,3 +32,4 @@ llm_location:
     - gpt-4o-mini
     - grok-3
     - deepseek-r1
+    - claude-sonnet-4-5

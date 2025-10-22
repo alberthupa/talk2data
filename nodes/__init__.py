@@ -12,6 +12,7 @@ from .node_answering import answering_node
 from .node_clarification import clarification_node
 from .node_classifier import classifier_node
 from .node_confirmation import confirmation_node
+from .node_generic_sql import generic_sql_node
 from .node_low_certainty import low_certainty_node
 from .node_parameter_extraction import parameter_extraction_node
 from .node_sql import sql_node
@@ -21,6 +22,7 @@ __all__ = [
     "clarification_node",
     "classifier_node",
     "confirmation_node",
+    "generic_sql_node",
     "low_certainty_node",
     "parameter_extraction_node",
     "sql_node",

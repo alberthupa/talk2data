@@ -1,0 +1,45 @@
+flowchart TD
+    Start([User Input]) --> Backend[FlowBackend.run_conversation]
+    Backend --> InitLLM[Initialize/Retrieve LLM Client]
+    InitLLM --> Pipeline[LangGraph Pipeline]
+
+    Pipeline --> Classifier[Classifier Node<br/>classify query type]
+
+    %% High Certainty Path
+    Classifier -->|High certainty ≥8| ParamExtract[Parameter Extraction Node]
+
+    %% Medium Certainty Path
+    Classifier -->|Medium certainty 2-7| Confirmation[Confirmation Node]
+    Confirmation -->|Option 1: Confirm| ParamExtract
+    Confirmation -->|Option 2: Generic SQL| GenericSQL[Generic SQL Node]
+    Confirmation -->|Option 3: No| Reclassify[Reclassify]
+    Reclassify --> Classifier
+
+    %% Low Certainty Path
+    Classifier -->|Low certainty <2| LowCertainty[Low Certainty Handler]
+    LowCertainty --> Return
+
+    %% Parameter Extraction Paths
+    ParamExtract -->|All params found| SQL[SQL Node<br/>generate & execute<br/>template-based query]
+    ParamExtract -->|Missing params| Clarification[Clarification Node]
+    Clarification --> Return
+
+    %% SQL Node Path
+    SQL --> Answering[Answering Node<br/>generate natural<br/>language response]
+
+    %% Generic SQL Path
+    GenericSQL -->|Success| Answering
+    GenericSQL -->|Failure| Return
+
+    %% Final Return
+    Answering --> Return([Return to User])
+
+    %% Styling
+    classDef startEnd fill:#e1f5e1,stroke:#4caf50,stroke-width:3px
+    classDef process fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    classDef critical fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+
+    class Start,Return startEnd
+    class Backend,InitLLM,Pipeline,ParamExtract,SQL,GenericSQL,Answering,Clarification,LowCertainty,Reclassify process
+    class Classifier,Confirmation decision

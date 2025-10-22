@@ -27,6 +27,7 @@ from nodes import (
     clarification_node as clarification_node_impl,
     classifier_node as classifier_node_impl,
     confirmation_node as confirmation_node_impl,
+    generic_sql_node as generic_sql_node_impl,
     low_certainty_node as low_certainty_node_impl,
     parameter_extraction_node as parameter_extraction_node_impl,
     sql_node as sql_node_impl,
@@ -51,6 +52,11 @@ class ConversationState(TypedDict):
     llm_client: Any | None
     llm_model_location: str | None
     llm_model_name: str | None
+    # Generic SQL support
+    confirmation_mode: str | None
+    awaiting_generic_choice: bool
+    generic_sql_attempted: bool
+    generic_sql_error: str | None
 
 
 @dataclass(slots=True)
@@ -100,6 +106,9 @@ class FlowBackend:
         self._db_path = Path(db_path)
         self._init_database()
 
+        # Cache for database schema
+        self._cached_schema: str | None = None
+
         self._graph_app = self._build_graph()
 
     #
@@ -122,6 +131,10 @@ class FlowBackend:
             "llm_client": None,
             "llm_model_location": None,
             "llm_model_name": None,
+            "confirmation_mode": None,
+            "awaiting_generic_choice": False,
+            "generic_sql_attempted": False,
+            "generic_sql_error": None,
         }
 
     def run_conversation(
@@ -177,11 +190,16 @@ class FlowBackend:
         if state.get("awaiting_confirmation"):
             state["messages"].append(HumanMessage(content=user_input))
 
-            user_input_lower = user_input.lower()
-            if any(
+            user_input_lower = user_input.strip().lower()
+
+            # Option 1: Confirm the scenario
+            if user_input_lower == "1" or any(
                 word in user_input_lower
-                for word in ["yes", "yeah", "correct", "right", "yep"]
+                for word in ["yes", "yeah", "correct", "right", "yep", "confirm"]
             ):
+                print(
+                    "[CONVERSATION] User confirmed scenario, extracting parameters..."
+                )
                 param_result = parameter_extraction_node_impl(self, state)
                 state.update(param_result)
 
@@ -189,6 +207,7 @@ class FlowBackend:
                     clarif_result = clarification_node_impl(self, state)
                     state["messages"].extend(clarif_result["messages"])
                     state["awaiting_confirmation"] = False
+                    state["awaiting_generic_choice"] = False
                     state["awaiting_clarification"] = True
                     new_messages = state["messages"][previous_len:]
                     return ConversationTurnResult(
@@ -201,22 +220,52 @@ class FlowBackend:
                 answer_result = answering_node_impl(self, state)
                 state.update(answer_result)
                 state["awaiting_confirmation"] = False
+                state["awaiting_generic_choice"] = False
                 new_messages = state["messages"][previous_len:]
                 return ConversationTurnResult(state=state, new_messages=new_messages)
 
-            if any(
-                word in user_input_lower
-                for word in ["no", "nope", "wrong", "different"]
+            # Option 2: Generic SQL path
+            if user_input_lower == "2" or any(
+                phrase in user_input_lower
+                for phrase in ["generic", "write the query", "craft", "custom sql"]
+            ):
+                print("[CONVERSATION] User chose generic SQL path...")
+
+                # Invoke generic SQL node
+                generic_result = generic_sql_node_impl(self, state)
+                state.update(generic_result)
+
+                # If SQL was successfully generated and executed, run answering node
+                if generic_result.get("sql_results") and generic_result[
+                    "sql_results"
+                ].get("rows"):
+                    answer_result = answering_node_impl(self, state)
+                    state.update(answer_result)
+
+                new_messages = state["messages"][previous_len:]
+                return ConversationTurnResult(state=state, new_messages=new_messages)
+
+            # Option 3: Deny and reclassify
+            if (
+                user_input_lower == "3"
+                or user_input_lower == "no"
+                or any(
+                    word in user_input_lower for word in ["nope", "wrong", "different"]
+                )
             ):
                 print("[CONVERSATION] User denied, reclassifying...")
                 state["awaiting_confirmation"] = False
+                state["awaiting_generic_choice"] = False
                 result_state = self._graph_app.invoke(state)
                 state.update(result_state)
                 new_messages = state["messages"][previous_len:]
                 return ConversationTurnResult(state=state, new_messages=new_messages)
 
+            # Invalid input
             state["messages"].append(
-                AIMessage(content="Please answer with 'yes' or 'no'.")
+                AIMessage(
+                    content="Please reply with '1' to confirm, '2' for generic SQL, or 'no' to reclassify."
+                )
             )
             new_messages = state["messages"][previous_len:]
             return ConversationTurnResult(state=state, new_messages=new_messages)
@@ -280,10 +329,7 @@ class FlowBackend:
 
         # Check if we need to (re)initialize
         current_model_input = state.get("llm_model_input")
-        if (
-            state.get("llm_client") is None
-            or current_model_input != llm_model_input
-        ):
+        if state.get("llm_client") is None or current_model_input != llm_model_input:
             print(f"[LLM CLIENT] Initializing client for: {llm_model_input}")
 
             client, location, model_name = create_llm_client(
@@ -291,9 +337,7 @@ class FlowBackend:
             )
 
             if client is None:
-                print(
-                    f"[LLM CLIENT] Failed to create client for {llm_model_input}"
-                )
+                print(f"[LLM CLIENT] Failed to create client for {llm_model_input}")
                 return None, None, None
 
             # Update state with new client info
@@ -302,9 +346,7 @@ class FlowBackend:
             state["llm_model_name"] = model_name
             state["llm_model_input"] = llm_model_input
 
-            print(
-                f"[LLM CLIENT] Initialized {location}:{model_name}"
-            )
+            print(f"[LLM CLIENT] Initialized {location}:{model_name}")
 
             return client, location, model_name
         else:
@@ -349,6 +391,53 @@ class FlowBackend:
             ]
         )
 
+    def _get_database_schema(self) -> str:
+        """
+        Retrieves and caches the database schema information.
+        Returns a text summary of tables, columns, and types.
+        """
+        if self._cached_schema is not None:
+            return self._cached_schema
+
+        try:
+            with sqlite3.connect(str(self._db_path)) as connection:
+                cursor = connection.cursor()
+
+                # Get all table names
+                cursor.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+                )
+                tables = [row[0] for row in cursor.fetchall()]
+
+                schema_parts = ["Database Schema:\n"]
+
+                for table_name in tables:
+                    schema_parts.append(f"\nTable: {table_name}")
+
+                    # Get column information
+                    cursor.execute(f"PRAGMA table_info({table_name})")
+                    columns = cursor.fetchall()
+
+                    schema_parts.append("Columns:")
+                    for col in columns:
+                        col_name = col[1]
+                        col_type = col[2]
+                        is_pk = " (PRIMARY KEY)" if col[5] else ""
+                        schema_parts.append(f"  - {col_name}: {col_type}{is_pk}")
+
+                self._cached_schema = "\n".join(schema_parts)
+                return self._cached_schema
+
+        except sqlite3.Error as error:
+            print(f"[SCHEMA] Error retrieving database schema: {error}")
+            return "Error: Unable to retrieve database schema"
+
+    def get_schema_prompt(self) -> str:
+        """
+        Public wrapper for schema retrieval, suitable for use in prompts.
+        """
+        return self._get_database_schema()
+
     def route_after_classification(
         self, state: ConversationState
     ) -> Literal[
@@ -366,43 +455,11 @@ class FlowBackend:
         if certainty >= 8:
             print(f"[ROUTER] High certainty ({certainty}) → parameter extraction")
             return "parameter_extraction_node"
-        if certainty >= 4:
+        if certainty >= 2:
             print(f"[ROUTER] Mid certainty ({certainty}) → confirmation")
             return "confirmation_node"
         print(f"[ROUTER] Low certainty ({certainty}) → low certainty handler")
         return "low_certainty_node"
-
-    '''
-    def route_after_confirmation(
-        self, state: ConversationState
-    ) -> Literal["parameter_extraction_node", "classifier_node", END]:
-        """Routes after confirmation node based on the user response."""
-        messages = state["messages"]
-        awaiting = state.get("awaiting_confirmation", False)
-
-        if not awaiting:
-            return END
-
-        last_message = None
-        for message in reversed(messages):
-            if isinstance(message, HumanMessage):
-                last_message = message.content.lower()
-                break
-
-        if not last_message:
-            return END
-
-        if any(
-            word in last_message for word in ["yes", "yeah", "correct", "right", "yep"]
-        ):
-            print("[CONFIRMATION ROUTER] User confirmed → parameter extraction")
-            return "parameter_extraction_node"
-        if any(word in last_message for word in ["no", "nope", "wrong", "different"]):
-            print("[CONFIRMATION ROUTER] User denied → reclassify")
-            return "classifier_node"
-        print("[CONFIRMATION ROUTER] Unclear response → END")
-        return END
-    '''
 
     def route_after_parameter_extraction(
         self, state: ConversationState
@@ -428,6 +485,7 @@ class FlowBackend:
         graph.add_node("confirmation_node", partial(confirmation_node_impl, self))
         graph.add_node("low_certainty_node", partial(low_certainty_node_impl, self))
         graph.add_node("clarification_node", partial(clarification_node_impl, self))
+        graph.add_node("generic_sql_node", partial(generic_sql_node_impl, self))
 
         graph.add_edge(START, "classifier_node")
 

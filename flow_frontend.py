@@ -105,7 +105,10 @@ def _render_sidebar(state: dict, backend: FlowBackend, llm_config: dict) -> None
         st.write(f"**Active LLM**: {current_llm}")
 
         if state.get("awaiting_confirmation"):
-            st.info("Awaiting your confirmation (yes/no).")
+            if state.get("awaiting_generic_choice"):
+                st.info("Reply with '1' to confirm, '2' for generic SQL, or 'no' to reclassify.")
+            else:
+                st.info("Awaiting your confirmation (yes/no).")
 
         if state.get("awaiting_clarification"):
             missing_params = state.get("missing_params") or []
@@ -113,6 +116,11 @@ def _render_sidebar(state: dict, backend: FlowBackend, llm_config: dict) -> None
                 st.warning("Missing parameters:")
                 for param in missing_params:
                     st.write(f"- {param['name']} (e.g., {param['example']})")
+
+        # Show generic SQL error if any
+        generic_sql_error = state.get("generic_sql_error")
+        if generic_sql_error:
+            st.error(f"Generic SQL Error: {generic_sql_error}")
 
         if st.button("Reset conversation"):
             st.session_state["flow_state"] = backend.create_initial_state()
