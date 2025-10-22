@@ -21,7 +21,8 @@ def answering_node(backend: "FlowBackend", state: "ConversationState") -> dict:
         (
             scenario
             for scenario in backend._scenarios
-            if scenario.get("question_type") == query_type
+            if scenario.get("question_example") == query_type
+            or scenario.get("question_type") == query_type
         ),
         None,
     )

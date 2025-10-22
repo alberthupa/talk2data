@@ -1,0 +1,562 @@
+[
+    {
+        "question_id": 1,
+        "question_complexity": "SIMPLE",
+        "question_type": "total_performance_category_year_month",
+        "question_description": "total performance of category in year-month",
+        "question_example": "Show HQ performance for the Buscuits in July 2025",
+        "question_sql": "SELECT\n    region,\n    SUM(CASE WHEN kpi_text = 'Net Revenue' THEN Act ELSE 0 END) AS total_net_revenue,\n    SUM(CASE WHEN kpi_text = 'Gross Profit (MM)' THEN Act ELSE 0 END) AS total_gross_profit,\n    SUM(CASE WHEN kpi_text = 'Operating Income' THEN Act ELSE 0 END) AS total_operating_income,\n    SUM(CASE WHEN kpi_text = 'Volume (MM) Kgs' THEN Act ELSE 0 END) AS total_volume,\n    SUM(CASE WHEN kpi_text = 'Net Revenue' THEN py ELSE 0 END) AS total_net_revenue_py,\n    SUM(CASE WHEN kpi_text = 'Gross Profit (MM)' THEN py ELSE 0 END) AS total_gross_profit_py,\n    SUM(CASE WHEN kpi_text = 'Operating Income' THEN py ELSE 0 END) AS total_operating_income_py,\n    SUM(CASE WHEN kpi_text = 'Volume (MM) Kgs' THEN py ELSE 0 END) AS total_volume_py\nFROM forecast_data\nWHERE sub_category_text = 'Biscuits' and region = 'HQ' and month = '202507'\nGROUP BY region\nORDER BY total_net_revenue DESC;",
+        "answer_template": "Net Revenue reached 4.80 MM EUR, slightly above last year (4.64 MM EUR, +3.4%).\n\nGross Profit was 11.25 MM EUR, almost flat vs PY (11.30 MM EUR, -0.5%), showing stable profitability despite higher revenue.\n\nOperating Income came in at 8.19 MM EUR, slightly above PY (7.93 MM EUR, +3.3%), reflecting efficient cost management.\n\nVolume was 21.88 MM Kgs, consistent with PY (21.86 MM Kgs, +0.1%).",
+        "question_sql_template": "SELECT\n    region,\n    SUM(CASE WHEN kpi_text = 'Net Revenue' THEN Act ELSE 0 END) AS total_net_revenue,\n    SUM(CASE WHEN kpi_text = 'Gross Profit (MM)' THEN Act ELSE 0 END) AS total_gross_profit,\n    SUM(CASE WHEN kpi_text = 'Operating Income' THEN Act ELSE 0 END) AS total_operating_income,\n    SUM(CASE WHEN kpi_text = 'Volume (MM) Kgs' THEN Act ELSE 0 END) AS total_volume,\n    SUM(CASE WHEN kpi_text = 'Net Revenue' THEN py ELSE 0 END) AS total_net_revenue_py,\n    SUM(CASE WHEN kpi_text = 'Gross Profit (MM)' THEN py ELSE 0 END) AS total_gross_profit_py,\n    SUM(CASE WHEN kpi_text = 'Operating Income' THEN py ELSE 0 END) AS total_operating_income_py,\n    SUM(CASE WHEN kpi_text = 'Volume (MM) Kgs' THEN py ELSE 0 END) AS total_volume_py\nFROM forecast_data\nWHERE sub_category_text = '{{category}}' and region = '{{region}}' and month = '{{year_month}}'\nGROUP BY region\nORDER BY total_net_revenue DESC;",
+        "question_inputs": [
+            {
+                "name": "region",
+                "type": "string",
+                "example": "HQ",
+                "unique_values": [
+                    "AMEA",
+                    "EU",
+                    "HQ",
+                    "LA"
+                ]
+            },
+            {
+                "name": "category",
+                "type": "string",
+                "example": "Biscuits",
+                "unique_values": [
+                    "Beverages",
+                    "Biscuits",
+                    "Cakes and Pastries",
+                    "Candy",
+                    "Chocolate",
+                    "Meals",
+                    "No Category",
+                    "Planning Adj",
+                    "Snack Bars"
+                ]
+            },
+            {
+                "name": "year_month",
+                "type": "string",
+                "example": "202507",
+                "unique_values": [
+                    "202501",
+                    "202502",
+                    "202503",
+                    "202504",
+                    "202505",
+                    "202506",
+                    "202507",
+                    "202508",
+                    "202509",
+                    "202510",
+                    "202511",
+                    "202512"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 2,
+        "question_complexity": "SIMPLE",
+        "question_type": "total_operational_income_of_category_in_year",
+        "question_description": "total operational income of category in year-month",
+        "question_example": "Show HQ Operational Income performance for the Buscuits in 2025",
+        "question_sql": "SELECT \n        year,\n        month,\n        region,\n        sub_category_text AS category,\n        SUM(CASE WHEN kpi_text = 'Operating Income' THEN Act ELSE 0 END) AS total_operating_income,\n        SUM(CASE WHEN kpi_text = 'Operating Income' THEN py ELSE 0 END) AS total_operating_income_py,\n        SUM(CASE WHEN kpi_text = 'Operating Income' THEN rf ELSE 0 END) AS total_operating_income_rf\n    FROM forecast_data\n    WHERE region = 'HQ'\n    AND sub_category_text = 'Biscuits'\n    AND year = 2025\n    GROUP BY year, month, region, sub_category_text\n    ORDER BY month;",
+        "answer_template": "HQ – Biscuits Operating Income (2025)\n\nvs Forecast (RF): YTD performance was broadly in line, but with notable swings.\n• March was +$0.2MM vs RF,\n• July aligned almost exactly,\n• Overall, Act is tracking slightly below RF in early months (e.g. February -$0.1MM, May -$0.2MM).\n\nvs Prior Year (PY):\n• January came in slightly lower (-$0.4MM) vs PY.\n• Q2 was broadly on par with last year (e.g. June +$0.2MM).\n• July showed a modest +0.3MM uplift vs PY.",
+        "question_sql_template": "SELECT \n        year,\n        month,\n        region,\n        sub_category_text AS category,\n        SUM(CASE WHEN kpi_text = 'Operating Income' THEN Act ELSE 0 END) AS total_operating_income,\n        SUM(CASE WHEN kpi_text = 'Operating Income' THEN py ELSE 0 END) AS total_operating_income_py,\n        SUM(CASE WHEN kpi_text = 'Operating Income' THEN rf ELSE 0 END) AS total_operating_income_rf\n    FROM forecast_data\n    WHERE region = '{{region}}'\n    AND sub_category_text = '{{category}}'\n    AND year = {{year}}\n    GROUP BY year, month, region, sub_category_text\n    ORDER BY month;",
+        "question_inputs": [
+            {
+                "name": "region",
+                "type": "string",
+                "example": "HQ",
+                "unique_values": [
+                    "AMEA",
+                    "EU",
+                    "HQ",
+                    "LA"
+                ]
+            },
+            {
+                "name": "category",
+                "type": "string",
+                "example": "Biscuits",
+                "unique_values": [
+                    "Beverages",
+                    "Biscuits",
+                    "Cakes and Pastries",
+                    "Candy",
+                    "Chocolate",
+                    "Meals",
+                    "No Category",
+                    "Planning Adj",
+                    "Snack Bars"
+                ]
+            },
+            {
+                "name": "year",
+                "type": "number",
+                "example": 2025,
+                "unique_values": [
+                    2025
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 3,
+        "question_complexity": "SIMPLE",
+        "question_type": "category_sales_volume_performance_for_region_in_year_month_vs_forecast",
+        "question_description": "category sales volume performance for region in year month vs forecast",
+        "question_example": "What is the Chocolate Other sales volume performance for EU in June 2025 vs forecast?",
+        "question_sql": "SELECT\n    year,\n    month,\n    region,\n  brand_segment_text AS category,\n    SUM(Act) AS total_volume,\n    SUM(rf) AS total_volume_rf,\n    (SUM(Act) - SUM(rf)) AS diff_vs_rf,\n    (SUM(Act) / NULLIF(SUM(rf), 0) - 1) * 100 AS pct_diff_vs_rf\nFROM forecast_data\nWHERE region = 'EU'\n  AND brand_segment_text = 'Chocolate Other'\n  AND kpi_text = 'Volume (MM) Kgs'\n  AND year = 2025\n  AND month = 202506\nGROUP BY year, month, region, brand_segment_text;",
+        "answer_template": "In June 2025, HQ Chocolate Other volume reached 21.8MM Kgs, slightly below forecast (–0.19MM Kgs, –0.8%). Performance was broadly in line with expectations, showing only a marginal shortfall vs RF.",
+        "question_sql_template": "SELECT\n    year,\n    month,\n    region,\n    brand_segment_text AS category,\n    SUM(Act) AS total_volume,\n    SUM(rf) AS total_volume_rf,\n    (SUM(Act) - SUM(rf)) AS diff_vs_rf,\n    (SUM(Act) / NULLIF(SUM(rf), 0) - 1) * 100 AS pct_diff_vs_rf\nFROM forecast_data\nWHERE region = '{{region}}'\n  AND brand_segment_text = '{{category}}'\n  AND kpi_text = 'Volume (MM) Kgs'\n  AND year = {{year}}\n  AND month = '{{year_month}}'\nGROUP BY year, month, region, brand_segment_text;",
+        "question_inputs": [
+            {
+                "name": "region",
+                "type": "string",
+                "example": "EU",
+                "unique_values": [
+                    "AMEA",
+                    "EU",
+                    "HQ",
+                    "LA"
+                ]
+            },
+            {
+                "name": "category",
+                "type": "string",
+                "example": "Chocolate Other",
+                "unique_values": [
+                    "Biscuit Other",
+                    "Bread Substitutes",
+                    "Cakes",
+                    "Candy Other",
+                    "Chocolate Other",
+                    "Meals Other",
+                    "No Product",
+                    "Planning Adjustment",
+                    "Ref Bev Other",
+                    "Savory Biscuit",
+                    "Snack Bars",
+                    "Sweet Biscuit"
+                ]
+            },
+            {
+                "name": "year",
+                "type": "number",
+                "example": 2025,
+                "unique_values": [
+                    2025
+                ]
+            },
+            {
+                "name": "year_month",
+                "type": "string",
+                "example": "202506",
+                "unique_values": [
+                    "202501",
+                    "202502",
+                    "202503",
+                    "202504",
+                    "202505",
+                    "202506",
+                    "202507",
+                    "202508",
+                    "202509",
+                    "202510",
+                    "202511",
+                    "202512"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 4,
+        "question_complexity": "SIMPLE",
+        "question_type": "top_10_best_and_worst_countries_in_category_on_gross_profit_vs_previous_year",
+        "question_description": "top 10 best and worst countries in category in gross profit vs previous year",
+        "question_example": " Show me top 10 best and worst performing countries on Biscuit gross profit vs previous year, in terms of growth percentage.",
+        "question_sql": "WITH country_perf AS (\n    SELECT\n        country_text AS country,\n        SUM(Act) AS total_gp,\n        SUM(PY) AS total_gp_py,\n        (SUM(Act) - SUM(PY)) AS diff_vs_py,\n        (SUM(Act) / NULLIF(SUM(PY), 0) - 1) * 100 AS pct_growth_vs_py\n    FROM  forecast_data\n    WHERE kpi_text = 'Gross Profit (MM)'\n      AND sub_category_text = 'Biscuits'\n      AND year = 2025\n      AND Act IS NOT NULL\n      AND Act != 0\n    GROUP BY country_text\n),\nranked AS (\n    SELECT\n        country,\n        total_gp,\n        total_gp_py,\n        diff_vs_py,\n        pct_growth_vs_py,\n        ROW_NUMBER() OVER (ORDER BY pct_growth_vs_py DESC) AS rn_desc,\n        ROW_NUMBER() OVER (ORDER BY pct_growth_vs_py ASC) AS rn_asc\n    FROM country_perf\n)\nSELECT 'TOP 10' AS type, country, total_gp, total_gp_py, diff_vs_py, pct_growth_vs_py\nFROM ranked\nWHERE rn_desc <= 10\n\nUNION ALL\n\nSELECT 'BOTTOM 10' AS type, country, total_gp, total_gp_py, diff_vs_py, pct_growth_vs_py\nFROM ranked\nWHERE rn_asc <= 10;",
+        "answer_template": "Top 10 countries saw the strongest Gross Profit growth vs PY in Japan (+4.34%) and ArgentinaARUFS_CAP (+3.20%), followed by other Argentina segments and AMEA All Other. Most top performers show moderate growth between ~2%–4.3%, indicating solid improvements in high-volume markets.\n\nBottom 10 countries had minimal Gross Profit growth, with Ireland, Portugal, Denmark, Ghana, and Thailand showing increases of ~0.04%–0.44%, reflecting stable but low-margin or saturated markets.\n\nOverall insight: High-growth markets are concentrated in Asia and Argentina segments, driving the top of the leaderboard, while lower-growth countries contribute little to total GP change.",
+        "question_sql_template": "WITH country_perf AS (\n    SELECT\n        country_text AS country,\n        SUM(Act) AS total_gp,\n        SUM(PY) AS total_gp_py,\n        (SUM(Act) - SUM(PY)) AS diff_vs_py,\n        (SUM(Act) / NULLIF(SUM(PY), 0) - 1) * 100 AS pct_growth_vs_py\n    FROM  forecast_data\n    WHERE kpi_text = 'Gross Profit (MM)'\n      AND sub_category_text = '{{category}}'\n      AND year = {{year}}\n      AND Act IS NOT NULL\n      AND Act != 0\n    GROUP BY country_text\n),\nranked AS (\n    SELECT\n        country,\n        total_gp,\n        total_gp_py,\n        diff_vs_py,\n        pct_growth_vs_py,\n        ROW_NUMBER() OVER (ORDER BY pct_growth_vs_py DESC) AS rn_desc,\n        ROW_NUMBER() OVER (ORDER BY pct_growth_vs_py ASC) AS rn_asc\n    FROM country_perf\n)\nSELECT 'TOP 10' AS type, country, total_gp, total_gp_py, diff_vs_py, pct_growth_vs_py\nFROM ranked\nWHERE rn_desc <= 10\n\nUNION ALL\n\nSELECT 'BOTTOM 10' AS type, country, total_gp, total_gp_py, diff_vs_py, pct_growth_vs_py\nFROM ranked\nWHERE rn_asc <= 10;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "string",
+                "example": "Biscuits",
+                "unique_values": [
+                    "Beverages",
+                    "Biscuits",
+                    "Cakes and Pastries",
+                    "Candy",
+                    "Chocolate",
+                    "Meals",
+                    "No Category",
+                    "Planning Adj",
+                    "Snack Bars"
+                ]
+            },
+            {
+                "name": "year",
+                "type": "number",
+                "example": 2025,
+                "unique_values": [
+                    2025
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 5,
+        "question_complexity": "MEDIUM",
+        "question_type": "executive_summary_of_performance_for_hq",
+        "question_description": "executive summary of performance for HQ",
+        "question_example": "Provide executive summary of performance for HQ",
+        "question_sql": "WITH hq_data AS (\n    SELECT\n        MONTH,\n        kpi_text,\n        SUM(Act) AS act,\n        SUM(py) AS py,\n        SUM(rf) AS rf\n    FROM forecast_data\n    WHERE region = 'HQ'\n      AND YEAR = 2025\n      AND MONTH = 202508\n      AND kpi_text IN ('Volume (MM) Kgs', 'Net Revenue', 'Gross Profit (MM)', 'Operating Income')\n      AND Act IS NOT NULL\n    GROUP BY MONTH, kpi_text\n),\n\nannual_summary AS (\n    SELECT\n        kpi_text AS kpi,\n        SUM(act) AS act_ytd,\n        SUM(rf) AS rf_ytd,\n        SUM(py) AS py_ytd,\n        SUM(act) - SUM(rf) AS diff_vs_fcst_ytd,\n        CASE WHEN SUM(rf) <> 0 THEN (SUM(act) - SUM(rf)) / SUM(rf) * 100 ELSE NULL END AS pct_vs_fcst_ytd,\n        SUM(act) - SUM(py) AS diff_vs_py_ytd,\n        CASE WHEN SUM(py) <> 0 THEN (SUM(act) - SUM(py)) / SUM(py) * 100 ELSE NULL END AS pct_vs_py_ytd\n    FROM hq_data\n    GROUP BY kpi_text\n)\n\nSELECT *\nFROM annual_summary\nORDER BY CASE\n            WHEN kpi = 'Volume (MM) Kgs' THEN 1\n            WHEN kpi = 'Net Revenue' THEN 2\n            WHEN kpi = 'Gross Profit (MM)' THEN 3\n            WHEN kpi = 'Operating Income' THEN 4\n            ELSE 5\n         END;",
+        "answer_template": "The latest closed month is August 2025. Please find below key performance highlights vs last FCST and PY for the month of August 2025:\n\n• Volume: -0.5 KT vs FCST, +1.8% vs PY\n\n• Net Revenue: -$0.003 MM vs FCST, +1.0% vs PY\n\n• Gross Profit: +$0.08 MM vs FCST, +0.2% vs PY\n\n• OI: -$0.46 MM vs FCST and +0.6% vs PY",
+        "question_sql_template": "WITH hq_data AS (\n    SELECT\n        MONTH,\n        kpi_text,\n        SUM(Act) AS act,\n        SUM(py) AS py,\n        SUM(rf) AS rf\n    FROM forecast_data\n    WHERE region = 'HQ'\n      AND YEAR = {{year}}\n      AND MONTH = {{month}}\n      AND kpi_text IN ('Volume (MM) Kgs', 'Net Revenue', 'Gross Profit (MM)', 'Operating Income')\n      AND Act IS NOT NULL\n    GROUP BY MONTH, kpi_text\n),\n\nannual_summary AS (\n    SELECT\n        kpi_text AS kpi,\n        SUM(act) AS act_ytd,\n        SUM(rf) AS rf_ytd,\n        SUM(py) AS py_ytd,\n        SUM(act) - SUM(rf) AS diff_vs_fcst_ytd,\n        CASE WHEN SUM(rf) <> 0 THEN (SUM(act) - SUM(rf)) / SUM(rf) * 100 ELSE NULL END AS pct_vs_fcst_ytd,\n        SUM(act) - SUM(py) AS diff_vs_py_ytd,\n        CASE WHEN SUM(py) <> 0 THEN (SUM(act) - SUM(py)) / SUM(py) * 100 ELSE NULL END AS pct_vs_py_ytd\n    FROM hq_data\n    GROUP BY kpi_text\n)\n\nSELECT *\nFROM annual_summary\nORDER BY CASE\n            WHEN kpi = 'Volume (MM) Kgs' THEN 1\n            WHEN kpi = 'Net Revenue' THEN 2\n            WHEN kpi = 'Gross Profit (MM)' THEN 3\n            WHEN kpi = 'Operating Income' THEN 4\n            ELSE 5\n         END;",
+        "question_inputs": [
+            {
+                "name": "year",
+                "type": "number",
+                "example": 2025,
+                "unique_values": [
+                    2025
+                ]
+            },
+            {
+                "name": "month",
+                "type": "number",
+                "example": 202508,
+                "unique_values": [
+                    202501,
+                    202502,
+                    202503,
+                    202504,
+                    202505,
+                    202506,
+                    202507,
+                    202508,
+                    202509,
+                    202510,
+                    202511,
+                    202512
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 6,
+        "question_complexity": "MEDIUM",
+        "question_type": "top_20_countries_in_terms_of_l3m_category_volume_growth_vs_previous_year",
+        "question_description": "top 20 countries in terms of L3M category volume growth vs previous year",
+        "question_example": "Show me top 20 countries in terms of L3M category volume growth vs previous year.",
+        "question_sql": "WITH latest_act_month AS (\n    -- Find the latest month with actuals\n    SELECT MAX(month) AS latest_month\n    FROM forecast_data\n    WHERE Act IS NOT NULL\n),\n\nl3m_data AS (\n    -- Get the last 3 months with available actuals\n    SELECT f.country_text,\n           f.sub_category_text,\n           f.kpi_text,\n           f.Act,\n           f.py\n    FROM forecast_data f\n    JOIN latest_act_month lam\n      ON f.month <= lam.latest_month\n    WHERE f.kpi_text = 'Volume (MM) Kgs'\n      AND f.Act IS NOT NULL\n      AND f.Act <> 0\n      AND f.month > lam.latest_month - 3 -- assumes month format YYYYMM\n),\n\nl3m_agg AS (\n    SELECT \n        country_text,\n        sub_category_text,\n        SUM(Act) AS total_act,\n        SUM(py) AS total_py,\n        SUM(Act) - SUM(py) AS diff_vs_py,\n        CASE WHEN SUM(py) <> 0 THEN (SUM(Act) - SUM(py)) / SUM(py) * 100 ELSE NULL END AS pct_growth_vs_py\n    FROM l3m_data\n    GROUP BY country_text, sub_category_text\n)\n\nSELECT *\nFROM l3m_agg\nORDER BY pct_growth_vs_py DESC\nLIMIT 20;",
+        "answer_template": "Analysis of the last 3 months’ volume growth by country and category shows the following highlights:\n\nTop performers:\n\nJapan – Biscuits: +4.3% vs PY, reflecting strong demand and favorable mix.\n\nArgentinaARUFS_CAP – Snack Bars: +3.2% vs PY, driven by increased sales in urban regions.\n\nFinland – Chocolate: +2.1% vs PY, volume growth supported by promotional activities.",
+        "question_sql_template": "WITH latest_act_month AS (\n    SELECT MAX(month) AS latest_month\n    FROM forecast_data\n    WHERE Act IS NOT NULL\n),\n\nlxm_data AS (\n    SELECT f.country_text,\n           f.sub_category_text,\n           f.kpi_text,\n           f.Act,\n           f.py\n    FROM forecast_data f\n    JOIN latest_act_month lam\n      ON f.month <= lam.latest_month\n    WHERE f.kpi_text = 'Volume (MM) Kgs'\n      AND f.Act IS NOT NULL\n      AND f.Act <> 0\n      AND f.month > lam.latest_month - {{lookback_months}}\n      AND f.sub_category_text = '{{category}}'\n),\n\nlxm_agg AS (\n    SELECT \n        country_text,\n        sub_category_text,\n        SUM(Act) AS total_act,\n        SUM(py) AS total_py,\n        SUM(Act) - SUM(py) AS diff_vs_py,\n        CASE WHEN SUM(py) <> 0 THEN (SUM(Act) - SUM(py)) / SUM(py) * 100 ELSE NULL END AS pct_growth_vs_py\n    FROM lxm_data\n    GROUP BY country_text, sub_category_text\n)\n\nSELECT *\nFROM lxm_agg\nORDER BY pct_growth_vs_py DESC\nLIMIT {{limit}};",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "string",
+                "example": "Biscuits",
+                "unique_values": [
+                    "Beverages",
+                    "Biscuits",
+                    "Cakes and Pastries",
+                    "Candy",
+                    "Chocolate",
+                    "Meals",
+                    "No Category",
+                    "Planning Adj",
+                    "Snack Bars"
+                ]
+            },
+            {
+                "name": "lookback_months",
+                "type": "number",
+                "example": 3,
+                "unique_values": []
+            },
+            {
+                "name": "limit",
+                "type": "number",
+                "example": 20,
+                "unique_values": []
+            }
+        ]
+    },
+    {
+        "question_id": 7,
+        "question_complexity": "MEDIUM",
+        "question_type": "historical_category_trend_in_country_in_category",
+        "question_description": "historical category trend in country in category",
+        "question_example": "Show me historical category trend in Brazil Chocolate",
+        "question_sql": "SELECT\n    year,\n    month,\n    kpi_text,\n    SUM(Act) AS Act,\n    SUM(act_ytd) AS Act_YTD,\n    SUM(py) AS PY,\n    SUM(py_ytd) AS PY_YTD,\n    SUM(rf) AS RF,\n    SUM(rf_ytd) AS RF_YTD,\n    SUM(ac) AS AC\nFROM forecast_data\nWHERE\n    country_text = 'Brazil'\n    AND sub_category_text = 'Biscuits'\nGROUP BY\n    year,\n    month,\n    kpi_text\nORDER BY\n    year,\n    month,\n    kpi_text;",
+        "answer_template": "Gross Profit for Brazil Biscuits started 2025 strong (10.64 MM EUR in Jan), then dipped in February (6.27 MM EUR), before gradually recovering to May (8.18 MM EUR).\n\nJune–August remained stable (7.39–7.92 MM EUR), closely tracking PY and forecast.\n\nNo Act data after August, but forecasts indicate a steady year-end, aligning with the annual plan (AC: 88.34 MM EUR).\n\nOverall, the trend shows moderate fluctuations early in the year, then a stable performance, with actuals closely following PY and forecast projections.",
+        "question_sql_template": "SELECT\n    year,\n    month,\n    kpi_text,\n    SUM(Act) AS Act,\n    SUM(act_ytd) AS Act_YTD,\n    SUM(py) AS PY,\n    SUM(py_ytd) AS PY_YTD,\n    SUM(rf) AS RF,\n    SUM(rf_ytd) AS RF_YTD,\n    SUM(ac) AS AC\nFROM forecast_data\nWHERE\n    country_text = '{{country}}'\n    AND sub_category_text = '{{category}}'\nGROUP BY\n    year,\n    month,\n    kpi_text\nORDER BY\n    year,\n    month,\n    kpi_text;",
+        "question_inputs": [
+            {
+                "name": "country",
+                "type": "string",
+                "example": "Brazil",
+                "unique_values": [
+                    "AMEA All Other",
+                    "AMEA HQ",
+                    "All Other",
+                    "ArgentinaARALLOC",
+                    "ArgentinaARUFS",
+                    "ArgentinaARUFS_CAP",
+                    "ArgentinaARUFS_ConstantFX",
+                    "ArgentinaSCO2",
+                    "Australia",
+                    "Austria",
+                    "Baltics",
+                    "Belgium",
+                    "Bolivia",
+                    "Brazil",
+                    "Bulgaria",
+                    "Canada",
+                    "Chile",
+                    "China",
+                    "Colombia",
+                    "Costa Rica",
+                    "Croatia",
+                    "Czech Republic",
+                    "Denmark",
+                    "Dominican Republic",
+                    "EU Expansion Busines",
+                    "EU HQ",
+                    "Eastern Africa",
+                    "Ecuador",
+                    "Egypt",
+                    "El Salvador",
+                    "Enjoy Life",
+                    "Exp LA to Caribbean",
+                    "Exp to Asia",
+                    "Finland",
+                    "France",
+                    "Germany",
+                    "Ghana",
+                    "Greece",
+                    "Guatemala",
+                    "Honduras",
+                    "Hong Kong",
+                    "Hungary",
+                    "Indonesia",
+                    "Ireland",
+                    "Italy",
+                    "Japan",
+                    "LA All Other",
+                    "LA HQ",
+                    "MDLZ HQ",
+                    "MEA Development Mark",
+                    "Malaysia",
+                    "Mexico",
+                    "Netherlands",
+                    "New Zealand",
+                    "Nicaragua",
+                    "Nigeria",
+                    "Norway",
+                    "Panama",
+                    "Peru",
+                    "Philippines",
+                    "Poland",
+                    "Portugal",
+                    "Puerto Rico",
+                    "Romania",
+                    "Serbia",
+                    "Singapore",
+                    "Slovakia",
+                    "Slovenia",
+                    "South Africa",
+                    "Spain",
+                    "Sweden",
+                    "Switzerland",
+                    "Tate's",
+                    "Thailand",
+                    "Turkiye",
+                    "USA",
+                    "United Kingdom",
+                    "Uruguay",
+                    "Vietnam",
+                    "World Travel Retail"
+                ]
+            },
+            {
+                "name": "category",
+                "type": "string",
+                "example": "Biscuits",
+                "unique_values": [
+                    "Beverages",
+                    "Biscuits",
+                    "Cakes and Pastries",
+                    "Candy",
+                    "Chocolate",
+                    "Meals",
+                    "No Category",
+                    "Planning Adj",
+                    "Snack Bars"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 8,
+        "question_complexity": "HARD",
+        "question_type": "gross_profit_top_and_bottom_20_country_vs_category_combinations_by_py_growth",
+        "question_description": "Gross profit Top and Bottom 20 Country vs Category Combinations by PY growth",
+        "question_example": "Show me actual Gross profit Top/Bottom 20 Country/Category Combinations by PY growth",
+        "question_sql": "WITH gross_profit AS (\n    SELECT\n        country_text,\n        sub_category_text,\n        SUM(Act) AS total_act,\n        SUM(py) AS total_py\n    FROM forecast_data\n    WHERE kpi_text = 'Gross Profit (MM)' and Act >0 and py >0\n    GROUP BY country_text, sub_category_text\n),\n\ngp_with_total AS (\n    SELECT\n        country_text,\n        sub_category_text,\n        total_act,\n        total_py,\n        CASE \n            WHEN total_py = 0 THEN NULL\n            ELSE (total_act - total_py) / total_py * 100\n        END AS pct_change_vs_py\n    FROM gross_profit\n),\n\nranked AS (\n    SELECT *,\n        RANK() OVER (ORDER BY total_act DESC) AS rank_desc,\n        RANK() OVER (ORDER BY total_act ASC) AS rank_asc\n    FROM gp_with_total\n)\n\nSELECT\n    'TOP 20' AS type,\n    country_text,\n    sub_category_text,\n    total_act,\n    total_py,\n    pct_change_vs_py\nFROM ranked\nWHERE rank_desc <= 20\n\nUNION ALL\n\nSELECT\n    'BOTTOM 20' AS type,\n    country_text,\n    sub_category_text,\n    total_act,\n    total_py,\n    pct_change_vs_py\nFROM ranked\nWHERE rank_asc <= 20\n\nORDER BY type, pct_change_vs_py DESC, total_act DESC;",
+        "answer_template": "Top 20 Country/Category combinations are dominated by Biscuits, with the highest actuals in USA (467.11 MM EUR), Canada (421.36 MM EUR), and Tate's (176.25 MM EUR). All top performers show modest growth vs PY, mostly between +0.1% and +1.6%, indicating stable expansion.\n\nBottom 20 Country/Category combinations include smaller markets and categories like Cakes and Pastries in Ghana, USA, Thailand, and Snack Bars in Egypt and Singapore, with Act values ranging 3.15–8.20 MM EUR. Growth vs PY is mixed, generally modest (+4.7% to -2.6%), showing minor fluctuations in lower-volume markets.\n\nTrend insight: High-volume Biscuits drive the bulk of Gross Profit and maintain steady YoY growth, while smaller markets show variability but limited impact on overall MDLZ performance.",
+        "question_sql_template": "WITH gross_profit AS (\n    SELECT\n        country_text,\n        sub_category_text,\n        SUM(Act) AS total_act,\n        SUM(py) AS total_py\n    FROM forecast_data\n    WHERE kpi_text = 'Gross Profit (MM)' and Act > 0 and py > 0\n    GROUP BY country_text, sub_category_text\n),\n\ngp_with_total AS (\n    SELECT\n        country_text,\n        sub_category_text,\n        total_act,\n        total_py,\n        CASE \n            WHEN total_py = 0 THEN NULL\n            ELSE (total_act - total_py) / total_py * 100\n        END AS pct_change_vs_py\n    FROM gross_profit\n),\n\nranked AS (\n    SELECT *,\n        RANK() OVER (ORDER BY total_act DESC) AS rank_desc,\n        RANK() OVER (ORDER BY total_act ASC) AS rank_asc\n    FROM gp_with_total\n)\n\nSELECT\n    'TOP {{limit}}' AS type,\n    country_text,\n    sub_category_text,\n    total_act,\n    total_py,\n    pct_change_vs_py\nFROM ranked\nWHERE rank_desc <= {{limit}}\n\nUNION ALL\n\nSELECT\n    'BOTTOM {{limit}}' AS type,\n    country_text,\n    sub_category_text,\n    total_act,\n    total_py,\n    pct_change_vs_py\nFROM ranked\nWHERE rank_asc <= {{limit}}\n\nORDER BY type, pct_change_vs_py DESC, total_act DESC;",
+        "question_inputs": [
+            {
+                "name": "limit",
+                "type": "number",
+                "example": 20,
+                "unique_values": []
+            }
+        ]
+    },
+    {
+        "question_id": 9,
+        "question_complexity": "HARD",
+        "question_type": "total_performance_for_a_quarter",
+        "question_description": "total performance for a quarter",
+        "question_example": "How was MDLZ performance for the Q2 2025?",
+        "question_sql": "WITH q2 AS (\n    SELECT\n        kpi_text,\n        region,\n        SUM(CAST(Act AS FLOAT)) AS act_q2,\n        SUM(CAST(rf AS FLOAT))  AS rf_q2,   -- OLT\n        SUM(CAST(py AS FLOAT))  AS py_q2    -- Prior Year\n    FROM forecast_data\n    WHERE year = 2025\n      AND substr(CAST(month AS TEXT), -2) IN ('04','05','06')  -- Q2 months\n    GROUP BY kpi_text, region\n),\nq2_total AS (\n    SELECT\n        kpi_text,\n        'TOTAL' AS region,\n        SUM(act_q2) AS act_q2,\n        SUM(rf_q2)  AS rf_q2,\n        SUM(py_q2)  AS py_q2\n    FROM q2\n    GROUP BY kpi_text\n)\nSELECT\n    kpi_text,\n    region,\n    ROUND(act_q2 - rf_q2, 2) AS diff_vs_olt,   -- Actuals vs Forecast\n    ROUND(act_q2 - py_q2, 2) AS diff_vs_py,   -- Actuals vs Prior Year\n    CASE WHEN rf_q2 <> 0 THEN ROUND((act_q2 - rf_q2)/rf_q2 * 100, 1) END AS pct_vs_olt,\n    CASE WHEN py_q2 <> 0 THEN ROUND((act_q2 - py_q2)/py_q2 * 100, 1) END AS pct_vs_py\nFROM q2\nUNION ALL\nSELECT\n    kpi_text,\n    region,\n    ROUND(act_q2 - rf_q2, 2) AS diff_vs_olt,\n    ROUND(act_q2 - py_q2, 2) AS diff_vs_py,\n    CASE WHEN rf_q2 <> 0 THEN ROUND((act_q2 - rf_q2)/rf_q2 * 100, 1) END AS pct_vs_olt,\n    CASE WHEN py_q2 <> 0 THEN ROUND((act_q2 - py_q2)/py_q2 * 100, 1) END AS pct_vs_py\nFROM q2_total\nORDER BY kpi_text, region;",
+        "answer_template": "Volume (MM Kgs) was broadly stable vs FCST (+0.93 MM Kgs, +0.6%), driven by HQ (+0.93 MM Kgs, +0.6%). Volume also increased vs PY (+2.83 MM Kgs, +1.7%).\n\nNet Revenue increased slightly vs FCST (+0.50 MM EUR, +1.0%), driven by HQ (+0.50 MM EUR, +1.0%). Net Revenue also grew vs PY (+1.10 MM EUR, +2.1%).\n\nGross Profit (MM) was slightly up vs FCST (+3.42 MM EUR, +0.1%), with regional effects: HQ (-0.73 MM EUR, -0.8%), LA (+0.59 MM EUR, +0.1%), EU (+0.11 MM EUR, +0.0%), AMEA (+2.52 MM EUR, +0.7%). vs PY, Gross Profit increased (+25.91 MM EUR, +1.1%), with contributions from AMEA (+5.38 MM EUR, +1.4%), EU (+9.72 MM EUR, +1.2%), LA (+7.26 MM EUR, +0.8%), HQ (+0.99 MM EUR, +1.1%).\n\nOperating Income was slightly down vs FCST (-0.38 MM EUR, -0.3%), entirely driven by HQ. vs PY, Operating Income increased modestly (+1.49 MM EUR, +1.3%).",
+        "question_sql_template": "WITH q AS (\n    SELECT\n        kpi_text,\n        region,\n        SUM(CAST(Act AS FLOAT)) AS act_q,\n        SUM(CAST(rf AS FLOAT))  AS rf_q,\n        SUM(CAST(py AS FLOAT))  AS py_q\n    FROM forecast_data\n    WHERE year = {{year}}\n      AND CAST(substr(CAST(month AS TEXT), -2) AS INTEGER) BETWEEN ((({{quarter}} - 1) * 3) + 1) AND ({{quarter}} * 3)\n    GROUP BY kpi_text, region\n),\nq_total AS (\n    SELECT\n        kpi_text,\n        'TOTAL' AS region,\n        SUM(act_q) AS act_q,\n        SUM(rf_q)  AS rf_q,\n        SUM(py_q)  AS py_q\n    FROM q\n    GROUP BY kpi_text\n)\nSELECT\n    kpi_text,\n    region,\n    ROUND(act_q - rf_q, 2) AS diff_vs_olt,\n    ROUND(act_q - py_q, 2) AS diff_vs_py,\n    CASE WHEN rf_q <> 0 THEN ROUND((act_q - rf_q)/rf_q * 100, 1) END AS pct_vs_olt,\n    CASE WHEN py_q <> 0 THEN ROUND((act_q - py_q)/py_q * 100, 1) END AS pct_vs_py\nFROM q\nUNION ALL\nSELECT\n    kpi_text,\n    region,\n    ROUND(act_q - rf_q, 2) AS diff_vs_olt,\n    ROUND(act_q - py_q, 2) AS diff_vs_py,\n    CASE WHEN rf_q <> 0 THEN ROUND((act_q - rf_q)/rf_q * 100, 1) END AS pct_vs_olt,\n    CASE WHEN py_q <> 0 THEN ROUND((act_q - py_q)/py_q * 100, 1) END AS pct_vs_py\nFROM q_total\nORDER BY kpi_text, region;",
+        "question_inputs": [
+            {
+                "name": "year",
+                "type": "number",
+                "example": 2025,
+                "unique_values": [
+                    2025
+                ]
+            },
+            {
+                "name": "quarter",
+                "type": "number",
+                "example": 2,
+                "unique_values": []
+            }
+        ]
+    },
+    {
+        "question_id": 10,
+        "question_complexity": "HARD",
+        "question_type": "gross_profit_till_the_end_of_june_vs_py_top_bottom_10_country_brand_combinations",
+        "question_description": "Gross Profit till the end of June vs PY ($MM) Top/Bottom 10 Country/Brand Combinations",
+        "question_example": "Provide Gross Profit till the end of June vs PY ($MM) Top/Bottom 10 Country/Brand Combinations",
+        "question_sql": "WITH ytd_gp AS (\n    SELECT\n        country_text,\n        brand_text,\n        SUM(Act) AS total_gp_act,\n        SUM(py) AS total_gp_py,\n        SUM(Act) - SUM(py) AS diff_vs_py,\n        CASE WHEN SUM(py) <> 0 THEN (SUM(Act) - SUM(py)) / SUM(py) * 100 ELSE NULL END AS pct_growth_vs_py\n    FROM forecast_data\n    WHERE kpi_text = 'Gross Profit (MM)'\n      AND month <= 202506  -- till end of June\n      AND Act IS NOT NULL\n      AND Act != 0\n    GROUP BY country_text, brand_text\n),\n\ntop10 AS (\n    SELECT *\n    FROM ytd_gp\n    ORDER BY pct_growth_vs_py DESC\n    LIMIT 10\n),\n\nbottom10 AS (\n    SELECT *\n    FROM ytd_gp\n    ORDER BY pct_growth_vs_py ASC\n    LIMIT 10\n)\n\nSELECT 'TOP 10' AS type, *\nFROM top10\nUNION ALL\nSELECT 'BOTTOM 10' AS type, *\nFROM bottom10\nORDER BY type, pct_growth_vs_py DESC;",
+        "answer_template": "Analysis of Gross Profit performance for the first half of 2025 shows the following highlights:\n\nTop performers (Top 10):\n\nArgentinaARUFS_CAP – Milka: +0.04 MM USD vs PY (+4.85%)\n\nArgentinaARUFS_ConstantFX – Milka: +0.24 MM USD vs PY (+4.16%)\n\nAMEA HQ – U'Guan: +0.54 MM USD vs PY (+3.73%)\n\nSpain – Oreo: +0.78 MM USD vs PY (+3.70%)\n\nArgentinaARALLOC – Oreo: +0.58 MM USD vs PY (+3.58%)\n\nBrazil – Milka: +0.11 MM USD vs PY (+3.55%)\n\nOther notable contributions include Philippines – Korona, Malaysia – Captains Table, Malaysia – Miscellaneous Biscuit, and AMEA All Other – Pacific, all with +3.5% to +3.8% growth vs PY.\n\nBottom performers (Bottom 10):\n\nThailand – Captains Table: -0.10 MM USD vs PY (-2.88%)\n\nThailand – Jacobs: -0.08 MM USD vs PY (-2.48%)\n\nThailand – U'Guan: -0.09 MM USD vs PY (-2.31%)\n\nMalaysia – U'Guan: -0.10 MM USD vs PY (-2.24%)\n\nOther declines include Italy – Oreo, Indonesia – Jacobs, Thailand – Korona, Thailand – Pacific, Indonesia – U'Guan, and Exp LA to Caribbean – Milka, with growth ranging from -0.8% to -1.3%.\n\nOverall insight: While several Latin American and AMEA brands are showing strong YTD Gross Profit growth, a few Southeast Asian and European combinations are slightly below last year. This mixed picture highlights areas for potential margin improvement and continued support for high-growth brands.",
+        "question_sql_template": "WITH ytd_gp AS (\n    SELECT\n        country_text,\n        brand_text,\n        SUM(Act) AS total_gp_act,\n        SUM(py) AS total_gp_py,\n        SUM(Act) - SUM(py) AS diff_vs_py,\n        CASE WHEN SUM(py) <> 0 THEN (SUM(Act) - SUM(py)) / SUM(py) * 100 ELSE NULL END AS pct_growth_vs_py\n    FROM forecast_data\n    WHERE kpi_text = 'Gross Profit (MM)'\n      AND month <= {{cutoff_year_month}}\n      AND Act IS NOT NULL\n      AND Act != 0\n    GROUP BY country_text, brand_text\n),\n\ntopN AS (\n    SELECT *\n    FROM ytd_gp\n    ORDER BY pct_growth_vs_py DESC\n    LIMIT {{limit}}\n),\n\nbottomN AS (\n    SELECT *\n    FROM ytd_gp\n    ORDER BY pct_growth_vs_py ASC\n    LIMIT {{limit}}\n)\n\nSELECT 'TOP {{limit}}' AS type, *\nFROM topN\nUNION ALL\nSELECT 'BOTTOM {{limit}}' AS type, *\nFROM bottomN\nORDER BY type, pct_growth_vs_py DESC;",
+        "question_inputs": [
+            {
+                "name": "cutoff_year_month",
+                "type": "number",
+                "example": 202506,
+                "unique_values": [
+                    202501,
+                    202502,
+                    202503,
+                    202504,
+                    202505,
+                    202506,
+                    202507,
+                    202508,
+                    202509,
+                    202510,
+                    202511,
+                    202512
+                ]
+            },
+            {
+                "name": "limit",
+                "type": "number",
+                "example": 10,
+                "unique_values": []
+            }
+        ]
+    },
+    {
+        "question_id": 11,
+        "question_complexity": "HARD",
+        "question_type": "what_has_changed_vs_prior_forecast",
+        "question_description": "What has changed vs Prior Forecast? ",
+        "question_example": "What has changed vs Prior Forecast? ",
+        "question_sql": "WITH last_quarter AS (\n    -- Identify the last full quarter with available actuals\n    SELECT \n        strftime('%Y', MONTH) AS year,\n        ((cast(strftime('%m', MONTH) as integer)-1)/3 + 1) AS quarter\n    FROM forecast_data\n    WHERE Act IS NOT NULL\n    GROUP BY year, quarter\n    ORDER BY year DESC, quarter DESC\n    LIMIT 1\n),\nregional_kpi_performance AS (\n    SELECT \n        kpi_text,\n        region AS region_name,\n        SUM(Act) AS actual_value,\n        SUM(rf) AS forecast_value,\n        SUM(Act) - SUM(rf) AS diff_vs_rf,\n        CASE\n            WHEN SUM(rf) <> 0 THEN (SUM(Act) - SUM(rf)) / SUM(rf) * 100\n            ELSE NULL\n        END AS pct_diff_vs_rf\n    FROM forecast_data\n    JOIN last_quarter\n      ON strftime('%Y', MONTH) = last_quarter.year\n     AND ((cast(strftime('%m', MONTH) as integer)-1)/3 + 1) = last_quarter.quarter\n    WHERE Act IS NOT NULL\n    GROUP BY kpi_text, region\n)\nSELECT \n    kpi_text,\n    region_name,\n    actual_value,\n    forecast_value,\n    diff_vs_rf,\n    pct_diff_vs_rf,\n    'Q' || last_quarter.quarter || ' ' || last_quarter.year AS quarter_label\nFROM regional_kpi_performance\nCROSS JOIN last_quarter\nORDER BY kpi_text, region_name;",
+        "answer_template": "Q2 Performance Summary\n\nVolume (MM Kgs) was up +2 Kgs vs forecast (OLT) with the following regional split: HQ +2 Kgs.\n\nNet Revenue increased slightly vs FCST by +$0.51 MM, driven by HQ +$0.51 MM.\n\nGross Profit (MM) increased marginally vs FCST by +$2.65 MM, with the following regional contributions: AMEA +$6.80 MM, LA +$1.25 MM, HQ -$2.23 MM, EU -$0.46 MM, Region None +$2.65 MM.\n\nOperating Income decreased slightly vs FCST by -$0.17 MM, driven by HQ -$0.17 MM.",
+        "question_sql_template": "WITH q AS (\n    SELECT \n        kpi_text,\n        region AS region_name,\n        SUM(Act) AS actual_value,\n        SUM(rf) AS forecast_value,\n        SUM(Act) - SUM(rf) AS diff_vs_rf,\n        CASE\n            WHEN SUM(rf) <> 0 THEN (SUM(Act) - SUM(rf)) / SUM(rf) * 100\n            ELSE NULL\n        END AS pct_diff_vs_rf\n    FROM forecast_data\n    WHERE year = {{year}}\n      AND CAST(substr(CAST(month AS TEXT), -2) AS INTEGER) BETWEEN ((({{quarter}} - 1) * 3) + 1) AND ({{quarter}} * 3)\n      AND Act IS NOT NULL\n    GROUP BY kpi_text, region\n)\nSELECT \n    kpi_text,\n    region_name,\n    actual_value,\n    forecast_value,\n    diff_vs_rf,\n    pct_diff_vs_rf,\n    'Q' || {{quarter}} || ' ' || {{year}} AS quarter_label\nFROM q\nORDER BY kpi_text, region_name;",
+        "question_inputs": [
+            {
+                "name": "year",
+                "type": "number",
+                "example": 2025,
+                "unique_values": [
+                    2025
+                ]
+            },
+            {
+                "name": "quarter",
+                "type": "number",
+                "example": 2,
+                "unique_values": []
+            }
+        ]
+    },
+    {
+        "question_id": 12,
+        "question_complexity": "MEDIUM",
+        "question_type": "executive_summary_of_performance_by_region",
+        "question_description": "executive summary of performance by region",
+        "question_example": "Provide executive summary of YTD performance by region for HQ",
+        "question_sql": "WITH regional_data AS (\n    SELECT\n        region,\n        kpi_text AS kpi,\n        MAX(MONTH) AS latest_month,\n        SUM(Act) AS act_ytd,\n        SUM(rf) AS rf_ytd,\n        SUM(py) AS py_ytd,\n        SUM(Act) - SUM(rf) AS diff_vs_fcst_ytd,\n        CASE\n            WHEN SUM(rf) <> 0 THEN (SUM(Act) - SUM(rf)) / SUM(rf) * 100\n            ELSE NULL\n        END AS pct_vs_fcst_ytd,\n        SUM(Act) - SUM(py) AS diff_vs_py_ytd,\n        CASE\n            WHEN SUM(py) <> 0 THEN (SUM(Act) - SUM(py)) / SUM(py) * 100\n            ELSE NULL\n        END AS pct_vs_py_ytd\n    FROM forecast_data\n    WHERE YEAR = 2025\n      AND kpi_text IN ('Volume (MM) Kgs',\n                       'Net Revenue',\n                       'Gross Profit (MM)',\n                       'Operating Income')\n      AND Act IS NOT NULL\n    GROUP BY region,\n             kpi_text\n)\nSELECT region AS region,\n       kpi AS kpi,\n       latest_month AS latest_month,\n       act_ytd AS actual_ytd,\n       rf_ytd AS forecast_ytd,\n       py_ytd AS previous_year_ytd,\n       diff_vs_fcst_ytd AS diff_vs_forecast_ytd,\n       pct_vs_fcst_ytd AS pct_vs_forecast_ytd,\n       diff_vs_py_ytd AS diff_vs_previous_year_ytd,\n       pct_vs_py_ytd AS pct_vs_previous_year_ytd\nFROM regional_data\nORDER BY region,\n         CASE\n             WHEN kpi = 'Volume (MM) Kgs' THEN 1\n             WHEN kpi = 'Net Revenue' THEN 2\n             WHEN kpi = 'Gross Profit (MM)' THEN 3\n             WHEN kpi = 'Operating Income' THEN 4\n             ELSE 5\n         END;",
+        "answer_template": "The latest closed month is August 2025. YTD performance by region vs FCST and PY:\n\n• AMEA: +$0.3 MM vs FCST (+0.8%), +1.5% vs PY\n\n• EU: -$0.2 MM vs FCST (-0.4%), +0.6% vs PY\n\n• LA: +$0.1 MM vs FCST (+0.2%), +1.1% vs PY\n\n• HQ: -$0.4 MM vs FCST (-0.7%), +0.5% vs PY",
+        "question_sql_template": "WITH regional_data AS (\n    SELECT\n        region,\n        kpi_text AS kpi,\n        MAX(MONTH) AS latest_month,\n        SUM(Act) AS act_ytd,\n        SUM(rf) AS rf_ytd,\n        SUM(py) AS py_ytd,\n        SUM(Act) - SUM(rf) AS diff_vs_fcst_ytd,\n        CASE\n            WHEN SUM(rf) <> 0 THEN (SUM(Act) - SUM(rf)) / SUM(rf) * 100\n            ELSE NULL\n        END AS pct_vs_fcst_ytd,\n        SUM(Act) - SUM(py) AS diff_vs_py_ytd,\n        CASE\n            WHEN SUM(py) <> 0 THEN (SUM(Act) - SUM(py)) / SUM(py) * 100\n            ELSE NULL\n        END AS pct_vs_py_ytd\n    FROM forecast_data\n    WHERE YEAR = {{year}}\n      AND kpi_text IN ('Volume (MM) Kgs',\n                       'Net Revenue',\n                       'Gross Profit (MM)',\n                       'Operating Income')\n      AND Act IS NOT NULL\n    GROUP BY region,\n             kpi_text\n)\nSELECT region AS region,\n       kpi AS kpi,\n       latest_month AS latest_month,\n       act_ytd AS actual_ytd,\n       rf_ytd AS forecast_ytd,\n       py_ytd AS previous_year_ytd,\n       diff_vs_fcst_ytd AS diff_vs_forecast_ytd,\n       pct_vs_fcst_ytd AS pct_vs_forecast_ytd,\n       diff_vs_py_ytd AS diff_vs_previous_year_ytd,\n       pct_vs_py_ytd AS pct_vs_previous_year_ytd\nFROM regional_data\nORDER BY region,\n         CASE\n             WHEN kpi = 'Volume (MM) Kgs' THEN 1\n             WHEN kpi = 'Net Revenue' THEN 2\n             WHEN kpi = 'Gross Profit (MM)' THEN 3\n             WHEN kpi = 'Operating Income' THEN 4\n             ELSE 5\n         END;",
+        "question_inputs": [
+            {
+                "name": "year",
+                "type": "number",
+                "example": 2025,
+                "unique_values": [
+                    2025
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 13,
+        "question_complexity": "MEDIUM",
+        "question_type": "gross_profit_country_category_growth_top_bottom",
+        "question_description": "Gross Profit growth top and bottom country/category combinations",
+        "question_example": "Show top and bottom Gross Profit growth country and category combinations",
+        "question_sql": "WITH gross_profit_data AS (\n    SELECT\n        country_text AS country,\n        sub_category_text AS category,\n        SUM(Act) AS gross_profit_act,\n        SUM(py) AS gross_profit_py,\n        SUM(Act) - SUM(py) AS diff_vs_py,\n        CASE\n            WHEN SUM(py) <> 0 THEN (SUM(Act) - SUM(py)) / SUM(py) * 100\n            ELSE NULL\n        END AS pct_growth_vs_py\n    FROM forecast_data\n    WHERE kpi_text = 'Gross Profit (MM)'\n      AND Act IS NOT NULL\n      AND Act > 0\n      AND py IS NOT NULL\n      AND py > 0\n    GROUP BY country_text,\n             sub_category_text\n),\nranked_data AS (\n    SELECT\n        country,\n        category,\n        gross_profit_act,\n        gross_profit_py,\n        diff_vs_py,\n        pct_growth_vs_py,\n        ROW_NUMBER() OVER (ORDER BY pct_growth_vs_py DESC) AS rank_desc,\n        ROW_NUMBER() OVER (ORDER BY pct_growth_vs_py ASC) AS rank_asc\n    FROM gross_profit_data\n)\nSELECT 'TOP 10' AS type,\n       country,\n       category,\n       gross_profit_act,\n       gross_profit_py,\n       diff_vs_py,\n       pct_growth_vs_py\nFROM ranked_data\nWHERE rank_desc <= 10\nUNION ALL\nSELECT 'BOTTOM 10' AS type,\n       country,\n       category,\n       gross_profit_act,\n       gross_profit_py,\n       diff_vs_py,\n       pct_growth_vs_py\nFROM ranked_data\nWHERE rank_asc <= 10\nORDER BY type,\n         pct_growth_vs_py DESC;",
+        "answer_template": "Gross Profit growth highlights by country and category:\n\nTop 10 combinations show double-digit momentum, signalling strong mix and pricing tailwinds.\n\nBottom 10 combinations reveal pockets of pressure where recovery plans are required to reverse PY declines.",
+        "question_sql_template": "WITH gross_profit_data AS (\n    SELECT\n        country_text AS country,\n        sub_category_text AS category,\n        SUM(Act) AS gross_profit_act,\n        SUM(py) AS gross_profit_py,\n        SUM(Act) - SUM(py) AS diff_vs_py,\n        CASE\n            WHEN SUM(py) <> 0 THEN (SUM(Act) - SUM(py)) / SUM(py) * 100\n            ELSE NULL\n        END AS pct_growth_vs_py\n    FROM forecast_data\n    WHERE kpi_text = '{{kpi}}'\n      AND Act IS NOT NULL\n      AND Act > 0\n      AND py IS NOT NULL\n      AND py > 0\n    GROUP BY country_text,\n             sub_category_text\n),\nranked_data AS (\n    SELECT\n        country,\n        category,\n        gross_profit_act,\n        gross_profit_py,\n        diff_vs_py,\n        pct_growth_vs_py,\n        ROW_NUMBER() OVER (ORDER BY pct_growth_vs_py DESC) AS rank_desc,\n        ROW_NUMBER() OVER (ORDER BY pct_growth_vs_py ASC) AS rank_asc\n    FROM gross_profit_data\n)\nSELECT 'TOP {{limit}}' AS type,\n       country,\n       category,\n       gross_profit_act,\n       gross_profit_py,\n       diff_vs_py,\n       pct_growth_vs_py\nFROM ranked_data\nWHERE rank_desc <= {{limit}}\nUNION ALL\nSELECT 'BOTTOM {{limit}}' AS type,\n       country,\n       category,\n       gross_profit_act,\n       gross_profit_py,\n       diff_vs_py,\n       pct_growth_vs_py\nFROM ranked_data\nWHERE rank_asc <= {{limit}}\nORDER BY type,\n         pct_growth_vs_py DESC;",
+        "question_inputs": [
+            {
+                "name": "kpi",
+                "type": "string",
+                "example": "Gross Profit (MM)",
+                "unique_values": [
+                    "Gross Profit (MM)",
+                    "Net Revenue",
+                    "Operating Income",
+                    "Volume (MM) Kgs"
+                ]
+            },
+            {
+                "name": "limit",
+                "type": "number",
+                "example": 10,
+                "unique_values": []
+            }
+        ]
+    }
+]

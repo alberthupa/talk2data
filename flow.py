@@ -8,6 +8,8 @@ all conversation logic to the FlowBackend module.
 from __future__ import annotations
 
 import sys
+import json
+from pathlib import Path
 from langchain_core.messages import AIMessage
 
 from flow_backend import FlowBackend
@@ -28,14 +30,32 @@ def interactive_chat(llm_model: str = "gpt-4o") -> None:
     print(f"Using LLM: {llm_model}")
     print("=" * 60)
     print("\nWelcome! Ask me about:")
-    print("  • Provide executive summary of performance for HQ")
-    print("  • Show HQ performance for the Buscuits in July 2025")
-    print("  • Give me the HQ biscuit results please")
-    print("  • What countries are in Brazil")
-    print("  • Results vs forecast for top countries")
-    print(
-        "  • Top 10 best and worst regions in category in gross profit vs previous year"
-    )
+
+    # Load example questions from scenarios.json if it exists
+    scenarios_path = Path("scenarios.json")
+    if scenarios_path.exists():
+        try:
+            with open(scenarios_path, "r") as f:
+                scenarios = json.load(f)
+            # Display first 5 question examples
+            for scenario in scenarios[:5]:
+                if "question_example" in scenario:
+                    print(f"  • {scenario['question_example']}")
+        except (json.JSONDecodeError, KeyError, IOError):
+            # Fallback to hardcoded examples if there's an error reading the file
+            print("  • Provide executive summary of performance for HQ")
+            print("  • Show HQ performance for the Buscuits in July 2025")
+            print("  • Give me the HQ biscuit results please")
+            print("  • What countries are in Brazil")
+            print("  • Results vs forecast for top countries")
+    else:
+        # Fallback to hardcoded examples if file doesn't exist
+        print("  • Provide executive summary of performance for HQ")
+        print("  • Show HQ performance for the Buscuits in July 2025")
+        print("  • Give me the HQ biscuit results please")
+        print("  • What countries are in Brazil")
+        print("  • Results vs forecast for top countries")
+
     print("\nType 'quit' or 'exit' to end the conversation\n")
     print("=" * 60)
 

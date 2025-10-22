@@ -80,7 +80,7 @@ def _render_sidebar(state: dict, backend: FlowBackend, llm_config: dict) -> None
             "Select LLM Model",
             options=model_options,
             index=current_index,
-            help="Choose which LLM model to use for the conversation"
+            help="Choose which LLM model to use for the conversation",
         )
 
         # Update state if model changed
@@ -347,6 +347,7 @@ def main() -> None:
         if scenarios:
             for scenario in scenarios:
                 scenario_id = scenario.get("question_id", "N/A")
+                example = scenario.get("question_example", "No example available")
                 description = scenario.get(
                     "question_description", "No description available"
                 )
@@ -355,7 +356,7 @@ def main() -> None:
                 )
                 question_inputs = scenario.get("question_inputs", [])
 
-                with st.expander(f"**Scenario {scenario_id}: {description}**"):
+                with st.expander(f"**Scenario {scenario_id}: {example}**"):
                     st.markdown(f"**Description:** {description}")
 
                     # Display question inputs if available
