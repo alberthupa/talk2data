@@ -18,16 +18,12 @@ def generic_sql_node(backend: "FlowBackend", state: "ConversationState") -> dict
     """
     print("[GENERIC SQL NODE] Starting generic SQL generation...")
 
-    # Build context for the LLM
-    conversation_history = backend._messages_to_string(state.get("messages", []))
+    # Extract user intent from the state
+    user_intent = state.get("query_type") or state.get("generic_sql_question") or ""
+    user_intent = user_intent.strip()
 
-    # Get classifier guess if available
-    query_type = state.get("query_type", "unknown")
-    classifier_context = (
-        f"The system initially classified this as: {query_type.replace('_', ' ')}\n"
-        if query_type and query_type != "unknown"
-        else ""
-    )
+    if not user_intent:
+        user_intent = "the user's latest question about the market performance data"
 
     # Get extracted params if any
     extracted_params = state.get("extracted_params", {})
@@ -41,10 +37,10 @@ def generic_sql_node(backend: "FlowBackend", state: "ConversationState") -> dict
     # Build the prompt for SQL generation
     prompt = f"""You are a SQL expert helping a user analyze market performance data.
 
-Conversation history:
-{conversation_history}
+User's question:
+{user_intent}
 
-{classifier_context}{params_context}
+{params_context}
 
 {schema}
 

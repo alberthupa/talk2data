@@ -7,6 +7,7 @@ Relies on FlowBackend to handle all business logic while Streamlit manages UX.
 from __future__ import annotations
 
 import json
+import os
 import yaml
 import pandas as pd
 import streamlit as st
@@ -106,7 +107,9 @@ def _render_sidebar(state: dict, backend: FlowBackend, llm_config: dict) -> None
 
         if state.get("awaiting_confirmation"):
             if state.get("awaiting_generic_choice"):
-                st.info("Reply with '1' to confirm, '2' for generic SQL, or 'no' to reclassify.")
+                st.info(
+                    "Reply with '1' to confirm, '2' for generic SQL, or 'no' to reclassify."
+                )
             else:
                 st.info("Awaiting your confirmation (yes/no).")
 
@@ -159,23 +162,28 @@ def main() -> None:
     st.set_page_config(page_title="Lingaro SQL Copilot", layout="wide")
 
     # Password authentication
-    """
-    if "authenticated" not in st.session_state:
-        st.session_state["authenticated"] = False
 
-    if not st.session_state["authenticated"]:
-        st.title("🔒 Authentication Required")
-        password_input = st.text_input("Enter password:", type="password")
+    # Check if running on Azure (or any production environment)
+    IS_PRODUCTION = os.getenv("ENVIRONMENT") == "production"
 
-        if st.button("Login"):
-            if password_input == "LingaroDelivers":
-                st.session_state["authenticated"] = True
-                st.rerun()
-            else:
-                st.error("Incorrect password. Please try again.")
+    # Password authentication
+    if IS_PRODUCTION:
+        if "authenticated" not in st.session_state:
+            st.session_state["authenticated"] = False
 
-        st.stop()
-    """
+        if not st.session_state["authenticated"]:
+            st.title("🔒 Authentication Required")
+            password_input = st.text_input("Enter password:", type="password")
+
+            if st.button("Login"):
+                if password_input == "LingaroDelivers":
+                    st.session_state["authenticated"] = True
+                    st.rerun()
+                else:
+                    st.error("Incorrect password. Please try again.")
+
+            st.stop()
+
     st.title("📊 Lingaro - Mondelez GenSights Technical Proof of Concept")
     st.caption(
         "Ask data questions about performance metrics. The assistant classifies your query, "

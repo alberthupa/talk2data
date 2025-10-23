@@ -162,6 +162,7 @@ def test_generic_sql_state():
         "awaiting_generic_choice",
         "generic_sql_attempted",
         "generic_sql_error",
+        "generic_sql_question",
     ]
 
     print("Checking generic SQL state fields...")

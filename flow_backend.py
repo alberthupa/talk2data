@@ -57,6 +57,7 @@ class ConversationState(TypedDict):
     awaiting_generic_choice: bool
     generic_sql_attempted: bool
     generic_sql_error: str | None
+    generic_sql_question: str | None
 
 
 @dataclass(slots=True)
@@ -135,6 +136,7 @@ class FlowBackend:
             "awaiting_generic_choice": False,
             "generic_sql_attempted": False,
             "generic_sql_error": None,
+            "generic_sql_question": None,
         }
 
     def run_conversation(
@@ -231,14 +233,31 @@ class FlowBackend:
             ):
                 print("[CONVERSATION] User chose generic SQL path...")
 
+                # Capture the last meaningful user question to guide generic SQL generation
+                previous_query_type = state.get("query_type")
+                actual_question = self._get_last_user_question(state["messages"])
+                if actual_question:
+                    state["query_type"] = actual_question
+                    state["generic_sql_question"] = actual_question
+                elif previous_query_type:
+                    state["generic_sql_question"] = previous_query_type
+
                 # Invoke generic SQL node
                 generic_result = generic_sql_node_impl(self, state)
                 state.update(generic_result)
 
+                generic_error = generic_result.get("generic_sql_error")
+                if generic_error is None:
+                    state["query_type"] = "GENERIC_SQL"
+                elif previous_query_type and actual_question:
+                    state["query_type"] = previous_query_type
+
                 # If SQL was successfully generated and executed, run answering node
-                if generic_result.get("sql_results") and generic_result[
-                    "sql_results"
-                ].get("rows"):
+                if (
+                    generic_error is None
+                    and generic_result.get("sql_results")
+                    and generic_result["sql_results"].get("rows")
+                ):
                     answer_result = answering_node_impl(self, state)
                     state.update(answer_result)
 
@@ -383,13 +402,62 @@ class FlowBackend:
             [
                 (
                     "User input"
-                    if isinstance(message, (HumanMessage, SystemMessage))
+                    if isinstance(message, HumanMessage)
+                    else "System message"
+                    if isinstance(message, SystemMessage)
                     else "Assistant message"
                 )
                 + f": {message.content}"
                 for message in messages
             ]
         )
+
+    @staticmethod
+    def _is_confirmation_response(text: str) -> bool:
+        normalized = text.strip().lower()
+        exact_matches = {
+            "1",
+            "2",
+            "3",
+            "yes",
+            "yeah",
+            "correct",
+            "right",
+            "yep",
+            "confirm",
+            "no",
+            "nope",
+            "wrong",
+            "different",
+            "generic",
+            "custom sql",
+            "write the query",
+            "craft",
+        }
+        if normalized in exact_matches:
+            return True
+
+        keyword_matches = (
+            "generic",
+            "custom sql",
+            "write the query",
+            "craft",
+        )
+        return any(normalized.startswith(keyword) for keyword in keyword_matches)
+
+    @classmethod
+    def _get_last_user_question(
+        cls, messages: list[AIMessage | HumanMessage | SystemMessage]
+    ) -> str:
+        for message in reversed(messages):
+            if isinstance(message, HumanMessage):
+                content = message.content.strip()
+                if not content:
+                    continue
+                if cls._is_confirmation_response(content):
+                    continue
+                return message.content
+        return ""
 
     def _get_database_schema(self) -> str:
         """

@@ -92,5 +92,6 @@ if __name__ == "__main__":
         print(f"[INFO] Using default LLM model: {llm_model}")
         print("[INFO] To use a different model, run: python flow.py <model_name>")
         print("[INFO] Examples: python flow.py groq:llama-3.1-8b-instant\n")
+        print("[INFO] Examples: python flow.py google_ai_studio:gemini-2.5-pro\n")
 
     interactive_chat(llm_model)

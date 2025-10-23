@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage
 
 if TYPE_CHECKING:
     from flow_backend import ConversationState, FlowBackend
@@ -16,18 +16,24 @@ def answering_node(backend: "FlowBackend", state: "ConversationState") -> dict:
     query_type = state.get("query_type", "unknown")
     sql_results = state.get("sql_results", {"columns": [], "rows": []})
     messages = state.get("messages", [])
+    generic_sql_question = state.get("generic_sql_question")
 
-    scenario = next(
-        (
-            scenario
-            for scenario in backend._scenarios
-            if scenario.get("question_example") == query_type
-            or scenario.get("question_type") == query_type
-        ),
-        None,
-    )
+    is_generic = query_type == "GENERIC_SQL"
 
-    if not scenario:
+    if is_generic:
+        scenario = None
+    else:
+        scenario = next(
+            (
+                scenario
+                for scenario in backend._scenarios
+                if scenario.get("question_example") == query_type
+                or scenario.get("question_type") == query_type
+            ),
+            None,
+        )
+
+    if not is_generic and not scenario:
         print(f"[ANSWERING NODE] No scenario found for query type: {query_type}")
         fallback_response = (
             "I've executed your query, but I'm not sure how to interpret the results."
@@ -37,13 +43,13 @@ def answering_node(backend: "FlowBackend", state: "ConversationState") -> dict:
             "awaiting_confirmation": False,
         }
 
-    answer_template = scenario.get("answer_template", "")
+    answer_template = (
+        scenario.get("answer_template", "")
+        if scenario
+        else "Provide a crisp business summary that answers the user's question based on the SQL results. Highlight the most relevant metrics and comparisons."
+    )
 
-    user_question = ""
-    for msg in reversed(messages):
-        if isinstance(msg, HumanMessage):
-            user_question = msg.content
-            break
+    user_question = generic_sql_question or backend._get_last_user_question(messages)
 
     if not sql_results or not sql_results.get("rows"):
         print("[ANSWERING NODE] No SQL results available")
@@ -51,6 +57,7 @@ def answering_node(backend: "FlowBackend", state: "ConversationState") -> dict:
         return {
             "messages": [AIMessage(content=response)],
             "awaiting_confirmation": False,
+            "display_dataframe": sql_results,
         }
 
     columns = sql_results.get("columns", [])
@@ -68,22 +75,24 @@ def answering_node(backend: "FlowBackend", state: "ConversationState") -> dict:
     if len(rows) > max_rows:
         results_text += f"\n... ({len(rows) - max_rows} more rows)\n"
 
+    question_context = user_question or "the user's latest request"
+
     prompt = f"""You are a business analyst generating insights from data.
 
-User's question: "{user_question}"
+User's question: "{question_context}"
+Query context (state.query_type): "{query_type}"
 
 {results_text}
 
 Based on the SQL results above, generate a clear, professional, and concise business summary that answers the user's question.
 
-Use the following answer template as a style guide for formatting and tone (but use the actual SQL data provided above, not the template data):
+Use the following answer guidance as a style reference (apply the ACTUAL SQL data provided above, not the template data):
 
 {answer_template}
 
 Important:
 - The latest closed month is September 2025
 - Use the ACTUAL data from the SQL results provided
-- Follow the style and structure of the template
 - Be specific with numbers and percentages
 - Keep the response professional and concise
 - If comparing periods, clearly state the metrics and differences
