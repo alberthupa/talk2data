@@ -4,7 +4,11 @@ from typing import TYPE_CHECKING
 import re
 
 from langchain_core.messages import HumanMessage
-from scenario_detector import detect, initialize as scenario_init, is_ready as scenario_ready
+from scenario_detector import (
+    detect,
+    initialize as scenario_init,
+    is_ready as scenario_ready,
+)
 
 if TYPE_CHECKING:
     from flow_backend import ConversationState, FlowBackend
@@ -45,6 +49,8 @@ def classifier_node(backend: "FlowBackend", state: "ConversationState") -> dict:
         else:
             chosen_label = "OTHER"
             certainty = 2
+
+        # backend._print_conversation(messages)
 
         return {
             "query_type": chosen_label,

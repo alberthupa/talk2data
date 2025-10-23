@@ -127,8 +127,15 @@ Generate the response now:"""
         print(f"[ANSWERING NODE] Generated response ({len(generated_response)} chars)")
         print(f"[ANSWERING NODE] Preview: {generated_response[:100]}...")
 
+        # For generic SQL queries, prepend SQL generation details
+        final_response = generated_response
+        if is_generic:
+            sql_details = state.get("generic_sql_details")
+            if sql_details:
+                final_response = f"{sql_details}\n---\n\n### Business Analysis\n\n{generated_response}"
+
         return {
-            "messages": [AIMessage(content=generated_response)],
+            "messages": [AIMessage(content=final_response)],
             "awaiting_confirmation": False,
             "display_dataframe": sql_results,
         }

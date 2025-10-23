@@ -58,6 +58,7 @@ class ConversationState(TypedDict):
     generic_sql_attempted: bool
     generic_sql_error: str | None
     generic_sql_question: str | None
+    generic_sql_details: str | None
 
 
 @dataclass(slots=True)
@@ -137,6 +138,7 @@ class FlowBackend:
             "generic_sql_attempted": False,
             "generic_sql_error": None,
             "generic_sql_question": None,
+            "generic_sql_details": None,
         }
 
     def run_conversation(
@@ -171,7 +173,7 @@ class FlowBackend:
             )
 
             param_result = parameter_extraction_node_impl(self, state)
-            state.update(param_result)
+            self._merge_node_result(state, param_result)
 
             if param_result.get("missing_params"):
                 clarif_result = clarification_node_impl(self, state)
@@ -181,10 +183,10 @@ class FlowBackend:
                 return ConversationTurnResult(state=state, new_messages=new_messages)
 
             sql_result = sql_node_impl(self, state)
-            state.update(sql_result)
+            self._merge_node_result(state, sql_result)
 
             answer_result = answering_node_impl(self, state)
-            state.update(answer_result)
+            self._merge_node_result(state, answer_result)
             state["awaiting_clarification"] = False
             new_messages = state["messages"][previous_len:]
             return ConversationTurnResult(state=state, new_messages=new_messages)
@@ -203,7 +205,7 @@ class FlowBackend:
                     "[CONVERSATION] User confirmed scenario, extracting parameters..."
                 )
                 param_result = parameter_extraction_node_impl(self, state)
-                state.update(param_result)
+                self._merge_node_result(state, param_result)
 
                 if param_result.get("missing_params"):
                     clarif_result = clarification_node_impl(self, state)
@@ -217,10 +219,10 @@ class FlowBackend:
                     )
 
                 sql_result = sql_node_impl(self, state)
-                state.update(sql_result)
+                self._merge_node_result(state, sql_result)
 
                 answer_result = answering_node_impl(self, state)
-                state.update(answer_result)
+                self._merge_node_result(state, answer_result)
                 state["awaiting_confirmation"] = False
                 state["awaiting_generic_choice"] = False
                 new_messages = state["messages"][previous_len:]
@@ -244,7 +246,7 @@ class FlowBackend:
 
                 # Invoke generic SQL node
                 generic_result = generic_sql_node_impl(self, state)
-                state.update(generic_result)
+                self._merge_node_result(state, generic_result)
 
                 generic_error = generic_result.get("generic_sql_error")
                 if generic_error is None:
@@ -259,7 +261,7 @@ class FlowBackend:
                     and generic_result["sql_results"].get("rows")
                 ):
                     answer_result = answering_node_impl(self, state)
-                    state.update(answer_result)
+                    self._merge_node_result(state, answer_result)
 
                 new_messages = state["messages"][previous_len:]
                 return ConversationTurnResult(state=state, new_messages=new_messages)
@@ -330,6 +332,34 @@ class FlowBackend:
         if not self._db_path.exists():
             raise FileNotFoundError(f"Database file not found at {self._db_path}")
         print(f"[DATABASE] SQLite database available at {self._db_path}")
+
+    def _merge_node_result(self, state: ConversationState, result: dict) -> None:
+        """
+        Safely merge a node's partial result into state without overwriting
+        accumulated message history. If the result contains a 'messages' key,
+        those messages are appended to state['messages'] and removed from the
+        result before updating the rest of the state.
+
+        Adds lightweight diagnostics to help trace message growth.
+        """
+        prev_len = len(state.get("messages", []))
+
+        msgs = result.get("messages")
+        if msgs:
+            state.setdefault("messages", []).extend(msgs)
+
+        # Avoid overwriting full history by removing messages from dict before update
+        if "messages" in result:
+            result = {k: v for k, v in result.items() if k != "messages"}
+
+        state.update(result)
+
+        now_len = len(state.get("messages", []))
+        if now_len < prev_len:
+            print(f"[WARN] messages shrank from {prev_len} to {now_len} during merge")
+        else:
+            added = now_len - prev_len
+            print(f"[MERGE] messages: prev={prev_len}, added={added}, now={now_len}")
 
     def _initialize_llm_client(
         self, state: ConversationState
@@ -411,6 +441,34 @@ class FlowBackend:
                 for message in messages
             ]
         )
+
+    # @staticmethod
+    # def _print_conversation(messages):
+    #     """
+    #     Prints a list of messages (like LangChain HumanMessage/AIMessage objects)
+    #     in a clean, readable format.
+    #     """
+    #     print("+++START+++")
+    #     no_of_messages = len(messages)
+    #     print(f"[CONVERSATION] Total messages: {no_of_messages}")
+    #     for message in messages:
+    #         # Determine the sender based on the message object's class name
+    #         # We'll use the type name and strip off 'Message'
+    #         sender_class = type(message).__name__
+    #         sender = sender_class.replace("Message", "")
+    #
+    #         # Format the sender name
+    #         formatted_sender = f"**{sender.upper()}**"
+    #
+    #         # Get the message content
+    #         content = getattr(message, "content", "No content found")
+    #
+    #
+    #
+    #
+    #        # Print the formatted message
+    #        print(f"{formatted_sender}:\n{'-' * len(formatted_sender)}\n{content}\n")
+    #    print("+++END+++")
 
     @staticmethod
     def _is_confirmation_response(text: str) -> bool:

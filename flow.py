@@ -41,6 +41,8 @@ def interactive_chat(llm_model: str = "gpt-4o") -> None:
             for scenario in scenarios[:5]:
                 if "question_example" in scenario:
                     print(f"  • {scenario['question_example']}")
+            print("  • seasonality of promo effectiveness")
+            print("  • how many poc do i have in the data")
         except (json.JSONDecodeError, KeyError, IOError):
             # Fallback to hardcoded examples if there's an error reading the file
             print("  • Provide executive summary of performance for HQ")
@@ -48,6 +50,8 @@ def interactive_chat(llm_model: str = "gpt-4o") -> None:
             print("  • Give me the HQ biscuit results please")
             print("  • What countries are in Brazil")
             print("  • Results vs forecast for top countries")
+            print("  • seasonality of promo effectiveness")
+            print("  • how many poc do i have in the data")
     else:
         # Fallback to hardcoded examples if file doesn't exist
         print("  • Provide executive summary of performance for HQ")
@@ -91,7 +95,9 @@ if __name__ == "__main__":
     else:
         print(f"[INFO] Using default LLM model: {llm_model}")
         print("[INFO] To use a different model, run: python flow.py <model_name>")
-        print("[INFO] Examples: python flow.py groq:llama-3.1-8b-instant\n")
-        print("[INFO] Examples: python flow.py google_ai_studio:gemini-2.5-pro\n")
+        print("[INFO] Examples: uv run flow.py groq:llama-3.1-8b-instant")
+        print("[INFO] Examples: uv run flow.py google_ai_studio:gemini-2.5-pro")
+        print("[INFO] Examples: uv run flow.py qwen/qwen3-coder:exacto")
+        print("[INFO] Examples: uv run flow.py x-ai/grok-code-fast-1")
 
     interactive_chat(llm_model)

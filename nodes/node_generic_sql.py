@@ -178,6 +178,28 @@ Generate the SQL query now:"""
                     print("[GENERIC SQL NODE] Query returned no results")
                     sql_results = {"columns": [], "rows": []}
 
+                # Build SQL generation details for display in final answer
+                details_parts = ["### SQL Query Generation\n"]
+                details_parts.append("**Generated SQL:**")
+                details_parts.append(f"```sql\n{sql_query}\n```\n")
+
+                if rationale:
+                    details_parts.append(f"**Rationale:** {rationale}\n")
+
+                details_parts.append(f"**Query Result:** {len(all_results)} row(s) returned\n")
+
+                # Add preview of results if available
+                if all_results and column_names:
+                    details_parts.append("**Result Preview (first 5 rows):**\n")
+                    details_parts.append("```")
+                    details_parts.append(" | ".join(column_names))
+                    details_parts.append("-" * min(80, len(" | ".join(column_names))))
+                    for row in all_results[:5]:
+                        details_parts.append(" | ".join(str(value) for value in row))
+                    details_parts.append("```\n")
+
+                sql_details = "\n".join(details_parts)
+
                 # Create a message with the rationale
                 rationale_msg = f"Generated query: {rationale}" if rationale else "Query executed successfully."
 
@@ -189,6 +211,7 @@ Generate the SQL query now:"""
                     "generic_sql_error": None,
                     "awaiting_confirmation": False,
                     "awaiting_generic_choice": False,
+                    "generic_sql_details": sql_details,
                 }
 
         except sqlite3.Error as sql_error:

@@ -25,6 +25,8 @@ llm_location:
     - cohere/command-r7b-12-2024
     - mistralai/mistral-7b-instruct-v0.2
     - microsoft/phi-3-medium-128k-instruct
+    - qwen/qwen3-235b-a22b
+    - x-ai/grok-code-fast-1
   deepseek:
     - deepseek-chat
     - deepseek-reasoner
