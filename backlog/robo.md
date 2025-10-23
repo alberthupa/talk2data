@@ -15,3 +15,5 @@ Please provide the original question, and I'll be happy to generate a clear, pro
 
 
 ------
+
+intent nie z ostatniej wypowiedzi tylko z 3 ostatnich wypowiedzi
