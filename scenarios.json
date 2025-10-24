@@ -1183,5 +1183,1481 @@
             }
         ],
         "hint": "Fill rate = invoices \u00f7 orders; typical range ~0.92\u20131.00. Low rates may indicate service issues."
+    },
+    {
+        "question_id": 1,
+        "question_example": "What is the record count by month?",
+        "question_complexity": "simple",
+        "question_type": "What is the record count by month?",
+        "question_description": "This question analyzes the number of records in the sales dataset for each month. It provides a basic overview of data volume over time, which is essential for understanding the dataset's temporal coverage and identifying any potential gaps or anomalies in data collection.",
+        "question_sql": "SELECT period_id, COUNT(*) AS record_count FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "The record count for {period_id} is {record_count}.",
+        "question_sql_template": "SELECT period_id, COUNT(*) AS record_count FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 2,
+        "question_example": "How many unique POCs and products exist?",
+        "question_complexity": "simple",
+        "question_type": "How many unique POCs and products exist?",
+        "question_description": "This question analyzes the breadth of the dataset by determining the number of unique Points of Customer (POCs) and products. Understanding the diversity of POCs and products helps gauge the dataset's coverage and potential market reach.",
+        "question_sql": "SELECT COUNT(DISTINCT customer_salesarea_sk) AS unique_pocs, COUNT(DISTINCT product_salesarea_sk) AS unique_products FROM sales_data;",
+        "answer_template": "There are {unique_pocs} unique Points of Customer (POCs) and {unique_products} unique products in the dataset.",
+        "question_sql_template": "SELECT COUNT(DISTINCT customer_salesarea_sk) AS unique_pocs, COUNT(DISTINCT product_salesarea_sk) AS unique_products FROM sales_data;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 3,
+        "question_example": "How many rows by category and packaging?",
+        "question_complexity": "simple",
+        "question_type": "How many rows by category and packaging?",
+        "question_description": "This question analyzes the distribution of rows in the dataset by beverage category and packaging type. It provides insights into the product mix and packaging preferences within the dataset, which can help in understanding the diversity and focus of the product offerings.",
+        "question_sql": "SELECT category, packaging_code, COUNT(*) AS row_count FROM sales_data GROUP BY category, packaging_code ORDER BY row_count DESC;",
+        "answer_template": "There are {row_count} rows for the {category} category with {packaging_code} packaging.",
+        "question_sql_template": "SELECT category, packaging_code, COUNT(*) AS row_count FROM sales_data GROUP BY category, packaging_code ORDER BY row_count DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 4,
+        "question_example": "What are the top regions and cities by rows?",
+        "question_complexity": "simple",
+        "question_type": "What are the top regions and cities by rows?",
+        "question_description": "This question analyzes the geographic distribution of sales data by identifying the top regions and cities based on the number of rows in the dataset. It provides insights into the areas with the most recorded sales activity, which can indicate market penetration and data coverage in different locations.",
+        "question_sql": "SELECT region_code, city_name, COUNT(*) AS row_count FROM sales_data GROUP BY region_code, city_name ORDER BY row_count DESC LIMIT 10;",
+        "answer_template": "The top regions and cities by rows are {region_code} in {city_name} with {row_count} rows.",
+        "question_sql_template": "SELECT region_code, city_name, COUNT(*) AS row_count FROM sales_data GROUP BY region_code, city_name ORDER BY row_count DESC LIMIT {{top_n}};",
+        "question_inputs": [
+            {
+                "name": "top_n",
+                "type": "numeric",
+                "example": 10,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 5,
+        "question_example": "How many rows per distribution channel?",
+        "question_complexity": "simple",
+        "question_type": "How many rows per distribution channel?",
+        "question_description": "This question analyzes the distribution of data rows across different distribution channels. It provides insights into the dataset's coverage and the relative volume of data associated with each channel, which can help identify the focus areas in terms of sales channels.",
+        "question_sql": "SELECT distribution_channel, COUNT(*) AS row_count FROM sales_data GROUP BY distribution_channel ORDER BY row_count DESC;",
+        "answer_template": "There are {row_count} rows for distribution channel {distribution_channel}.",
+        "question_sql_template": "SELECT distribution_channel, COUNT(*) AS row_count FROM sales_data GROUP BY distribution_channel ORDER BY row_count DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 6,
+        "question_example": "What flavours are most represented?",
+        "question_complexity": "simple",
+        "question_type": "What flavours are most represented?",
+        "question_description": "This question analyzes the distribution of product flavours in the dataset to identify which flavours are most frequently represented. Understanding the most common flavours can provide insights into product popularity and inventory needs, helping businesses tailor their offerings to consumer preferences.",
+        "question_sql": "SELECT product_flavour, COUNT(*) AS flavour_count FROM sales_data GROUP BY product_flavour ORDER BY flavour_count DESC;",
+        "answer_template": "The most represented flavour is {product_flavour} with {flavour_count} occurrences.",
+        "question_sql_template": "SELECT product_flavour, COUNT(*) AS flavour_count FROM sales_data GROUP BY product_flavour ORDER BY flavour_count DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 7,
+        "question_example": "What is the share of promo-active rows?",
+        "question_complexity": "simple",
+        "question_type": "What is the share of promo-active rows?",
+        "question_description": "This question analyzes the proportion of rows in the dataset where promotions are active. It provides insights into the prevalence of promotional activities within the dataset, which can help understand the frequency and potential impact of promotions on sales performance.",
+        "question_sql": "SELECT COUNT(*) AS total_rows, SUM(CASE WHEN promo_active_flag = 1 THEN 1 ELSE 0 END) AS promo_active_rows, (SUM(CASE WHEN promo_active_flag = 1 THEN 1 ELSE 0 END) * 1.0 / COUNT(*)) AS promo_active_share FROM sales_data;",
+        "answer_template": "The share of promo-active rows is {promo_active_share}, with {promo_active_rows} out of {total_rows} rows having active promotions.",
+        "question_sql_template": "SELECT COUNT(*) AS total_rows, SUM(CASE WHEN promo_active_flag = 1 THEN 1 ELSE 0 END) AS promo_active_rows, (SUM(CASE WHEN promo_active_flag = 1 THEN 1 ELSE 0 END) * 1.0 / COUNT(*)) AS promo_active_share FROM sales_data;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 8,
+        "question_example": "What is the total sell-in vs sell-out volume?",
+        "question_complexity": "simple",
+        "question_type": "What is the total sell-in vs sell-out volume?",
+        "question_description": "This question analyzes the total sell-in and sell-out volumes across all periods in the dataset. It provides a high-level overview of the volume of products entering and leaving the point of customer, which is crucial for understanding the overall flow of goods and identifying potential discrepancies between supply and demand.",
+        "question_sql": "SELECT SUM(si_invoices_cases) AS total_sell_in_cases, SUM(so_units) AS total_sell_out_units FROM sales_data;",
+        "answer_template": "The total sell-in volume is {total_sell_in_cases} cases, while the total sell-out volume is {total_sell_out_units} units.",
+        "question_sql_template": "SELECT SUM(si_invoices_cases) AS total_sell_in_cases, SUM(so_units) AS total_sell_out_units FROM sales_data;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 9,
+        "question_example": "What is average retail vs net price by category?",
+        "question_complexity": "simple",
+        "question_type": "What is average retail vs net price by category?",
+        "question_description": "This question analyzes the average retail and net prices of beverages by category. It provides insights into the pricing strategy and price realization across different beverage categories, helping to understand the pricing dynamics and potential margin implications.",
+        "question_sql": "SELECT category, AVG(retail_price_lcl) AS avg_retail_price, AVG(net_price_lcl) AS avg_net_price FROM sales_data GROUP BY category ORDER BY category;",
+        "answer_template": "The average retail price for {category} is {avg_retail_price} LCL, while the average net price is {avg_net_price} LCL.",
+        "question_sql_template": "SELECT category, AVG(retail_price_lcl) AS avg_retail_price, AVG(net_price_lcl) AS avg_net_price FROM sales_data GROUP BY category ORDER BY category;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 10,
+        "question_example": "What is the distribution of days of supply?",
+        "question_complexity": "simple",
+        "question_type": "What is the distribution of days of supply?",
+        "question_description": "This question analyzes the distribution of days of supply across different entries in the dataset. Understanding the distribution of days of supply is crucial for assessing inventory coverage and identifying potential stockout risks or overstock situations. It provides insights into how well inventory levels are managed relative to demand.",
+        "question_sql": "SELECT days_of_supply, COUNT(*) AS count FROM sales_data GROUP BY days_of_supply ORDER BY days_of_supply;",
+        "answer_template": "The distribution of days of supply shows that there are {count} entries with {days_of_supply} days of supply.",
+        "question_sql_template": "SELECT days_of_supply, COUNT(*) AS count FROM sales_data GROUP BY days_of_supply ORDER BY days_of_supply;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 11,
+        "question_example": "What is the distribution of market share (units/value)?",
+        "question_complexity": "simple",
+        "question_type": "What is the distribution of market share (units/value)?",
+        "question_description": "This question analyzes the distribution of market share in terms of both units and value. Understanding the distribution of market share helps identify the competitive position of products within the market and highlights areas of strength or potential improvement. It provides insights into how well a product is performing relative to the overall market.",
+        "question_sql": "SELECT category, region_code, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data GROUP BY category, region_code ORDER BY category, region_code;",
+        "answer_template": "The average market share for {category} in the {region_code} region is {avg_share_units_pct}% for units and {avg_share_value_pct}% for value.",
+        "question_sql_template": "SELECT category, region_code, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data GROUP BY category, region_code ORDER BY category, region_code;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 12,
+        "question_example": "What are total sell-in cases and value by month?",
+        "question_complexity": "simple",
+        "question_type": "What are total sell-in cases and value by month?",
+        "question_description": "This question analyzes the total sell-in cases and their corresponding value by month. It provides insights into the monthly trends of shipped volume and value, which are crucial for understanding sales performance and planning inventory and production schedules.",
+        "question_sql": "SELECT period_id, SUM(si_invoices_cases) AS total_sell_in_cases, SUM(si_invoices_value_lcl) AS total_sell_in_value FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "The total sell-in volume for {month} was {total_sell_in_cases} cases with a value of {total_sell_in_value} LCL.",
+        "question_sql_template": "SELECT period_id, SUM(si_invoices_cases) AS total_sell_in_cases, SUM(si_invoices_value_lcl) AS total_sell_in_value FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 13,
+        "question_example": "What is sell-in by category and region?",
+        "question_complexity": "simple",
+        "question_type": "What is sell-in by category and region?",
+        "question_description": "This question analyzes the total sell-in volume and value by category and region. It provides insights into how different beverage categories perform across various regions, helping to identify regional strengths and potential areas for growth.",
+        "question_sql": "SELECT category, region_code, SUM(si_invoices_cases) AS total_cases, SUM(si_invoices_value_lcl) AS total_value FROM sales_data GROUP BY category, region_code ORDER BY category, region_code;",
+        "answer_template": "The total sell-in volume for {category} in {region_code} was {total_cases} cases with a value of {total_value} LCL.",
+        "question_sql_template": "SELECT category, region_code, SUM(si_invoices_cases) AS total_cases, SUM(si_invoices_value_lcl) AS total_value FROM sales_data WHERE category = '{{category}}' AND region_code = '{{region_code}}' GROUP BY category, region_code ORDER BY category, region_code;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            },
+            {
+                "name": "region_code",
+                "type": "categorical",
+                "example": "JAL",
+                "unique_values": [
+                    "JAL",
+                    "SLP",
+                    "TMS"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 14,
+        "question_example": "What is sell-in by distribution channel?",
+        "question_complexity": "simple",
+        "question_type": "What is sell-in by distribution channel?",
+        "question_description": "This question analyzes the total sell-in volume by distribution channel. It provides insights into how different distribution channels contribute to the overall sell-in performance, helping to identify which channels are most effective in moving products into the market.",
+        "question_sql": "SELECT distribution_channel, SUM(si_invoices_cases) AS total_sell_in_cases, SUM(si_invoices_value_lcl) AS total_sell_in_value FROM sales_data GROUP BY distribution_channel ORDER BY total_sell_in_cases DESC;",
+        "answer_template": "The total sell-in volume for distribution channel {distribution_channel} was {total_sell_in_cases} cases with a value of {total_sell_in_value} LCL.",
+        "question_sql_template": "SELECT distribution_channel, SUM(si_invoices_cases) AS total_sell_in_cases, SUM(si_invoices_value_lcl) AS total_sell_in_value FROM sales_data GROUP BY distribution_channel ORDER BY total_sell_in_cases DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 15,
+        "question_example": "What is average ASP per case by category?",
+        "question_complexity": "simple",
+        "question_type": "What is average ASP per case by category?",
+        "question_description": "This question analyzes the average selling price (ASP) per case for each beverage category. Understanding the ASP by category helps in assessing pricing strategies and profitability across different product lines, providing insights into which categories are priced higher and potentially more profitable.",
+        "question_sql": "SELECT category, AVG(si_asp_value_per_case) AS average_asp_per_case FROM sales_data GROUP BY category ORDER BY average_asp_per_case DESC;",
+        "answer_template": "The average ASP per case for {category} is {average_asp_per_case} LCL.",
+        "question_sql_template": "SELECT category, AVG(si_asp_value_per_case) AS average_asp_per_case FROM sales_data GROUP BY category ORDER BY average_asp_per_case DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 16,
+        "question_example": "What are net revenue and gross profit trends?",
+        "question_complexity": "simple",
+        "question_type": "What are net revenue and gross profit trends?",
+        "question_description": "This question analyzes the trends in net revenue and gross profit over time. Understanding these trends is crucial for assessing the financial health and profitability of the business. It provides insights into how well the company is converting sales into profit and managing its cost structure.",
+        "question_sql": "SELECT period_id, SUM(si_net_revenue_value_lcl) AS total_net_revenue, SUM(si_gross_profit_value_lcl) AS total_gross_profit FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "For period {period_id}, the total net revenue was {total_net_revenue} LCL and the total gross profit was {total_gross_profit} LCL.",
+        "question_sql_template": "SELECT period_id, SUM(si_net_revenue_value_lcl) AS total_net_revenue, SUM(si_gross_profit_value_lcl) AS total_gross_profit FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 17,
+        "question_example": "What is the returns rate by month and region?",
+        "question_complexity": "simple",
+        "question_type": "What is the returns rate by month and region?",
+        "question_description": "This question analyzes the returns rate of products by month and region, providing insights into the quality and customer satisfaction levels across different geographical areas. Understanding returns rates can help identify potential issues with product quality or distribution in specific regions, allowing for targeted improvements.",
+        "question_sql": "SELECT period_id, region_code, AVG(si_returns_rate) AS average_returns_rate FROM sales_data GROUP BY period_id, region_code ORDER BY period_id, region_code;",
+        "answer_template": "The average returns rate for {region_code} in {period_id} was {average_returns_rate}.",
+        "question_sql_template": "SELECT period_id, region_code, AVG(si_returns_rate) AS average_returns_rate FROM sales_data WHERE period_id = {{period_id}} AND region_code = '{{region_code}}' GROUP BY period_id, region_code ORDER BY period_id, region_code;",
+        "question_inputs": [
+            {
+                "name": "period_id",
+                "type": "numeric",
+                "example": 202401,
+                "unique_values": [
+                    202401,
+                    202402,
+                    202403,
+                    202404,
+                    202405,
+                    202406,
+                    202407,
+                    202408,
+                    202409,
+                    202501,
+                    202502,
+                    202503,
+                    202504,
+                    202505,
+                    202506,
+                    202507,
+                    202508,
+                    202509
+                ]
+            },
+            {
+                "name": "region_code",
+                "type": "categorical",
+                "example": "JAL",
+                "unique_values": [
+                    "JAL",
+                    "SLP",
+                    "TMS"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 18,
+        "question_example": "How do orders vs invoices differ (fill rate)?",
+        "question_complexity": "simple",
+        "question_type": "How do orders vs invoices differ (fill rate)?",
+        "question_description": "This question analyzes the difference between orders and invoices to assess the fill rate, which indicates the efficiency of order fulfillment. Understanding this difference helps identify potential gaps in supply chain execution and customer satisfaction.",
+        "question_sql": "SELECT period_id, SUM(si_orders_cases) AS total_orders_cases, SUM(si_invoices_cases) AS total_invoices_cases, (SUM(si_invoices_cases) * 1.0 / SUM(si_orders_cases)) AS fill_rate FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "In {period_id}, the total orders were {total_orders_cases} cases, while the total invoices were {total_invoices_cases} cases, resulting in a fill rate of {fill_rate}.",
+        "question_sql_template": "SELECT period_id, SUM(si_orders_cases) AS total_orders_cases, SUM(si_invoices_cases) AS total_invoices_cases, (SUM(si_invoices_cases) * 1.0 / SUM(si_orders_cases)) AS fill_rate FROM sales_data WHERE period_id = {{period_id}} GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": [
+            {
+                "name": "period_id",
+                "type": "categorical",
+                "example": 202401,
+                "unique_values": [
+                    202401,
+                    202402,
+                    202403,
+                    202404,
+                    202405,
+                    202406,
+                    202407,
+                    202408,
+                    202409,
+                    202501,
+                    202502,
+                    202503,
+                    202504,
+                    202505,
+                    202506,
+                    202507,
+                    202508,
+                    202509
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 19,
+        "question_example": "Which POCs have high returns rate with high invoices?",
+        "question_complexity": "advanced",
+        "question_type": "Which POCs have high returns rate with high invoices?",
+        "question_description": "This question identifies Points of Customer (POCs) with a high returns rate and significant invoice volume. It is crucial for detecting potential service or quality issues that may affect customer satisfaction and operational efficiency. By analyzing these metrics, businesses can prioritize areas for improvement and enhance their supply chain processes.",
+        "question_sql": "SELECT customer_salesarea_sk, SUM(si_invoices_cases) AS total_invoices, AVG(si_returns_rate) AS avg_returns_rate FROM sales_data GROUP BY customer_salesarea_sk HAVING total_invoices > 100 AND avg_returns_rate > 0.01 ORDER BY avg_returns_rate DESC, total_invoices DESC LIMIT 10;",
+        "answer_template": "The POC with ID {customer_salesarea_sk} has a total of {total_invoices} invoices and an average returns rate of {avg_returns_rate}.",
+        "question_sql_template": "SELECT customer_salesarea_sk, SUM(si_invoices_cases) AS total_invoices, AVG(si_returns_rate) AS avg_returns_rate FROM sales_data GROUP BY customer_salesarea_sk HAVING total_invoices > {{min_invoices}} AND avg_returns_rate > {{min_returns_rate}} ORDER BY avg_returns_rate DESC, total_invoices DESC LIMIT {{limit}};",
+        "question_inputs": [
+            {
+                "name": "min_invoices",
+                "type": "numeric",
+                "example": 100,
+                "unique_values": null
+            },
+            {
+                "name": "min_returns_rate",
+                "type": "numeric",
+                "example": 0.01,
+                "unique_values": null
+            },
+            {
+                "name": "limit",
+                "type": "numeric",
+                "example": 10,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 20,
+        "question_example": "Where is virtual vs invoice volume most discrepant?",
+        "question_complexity": "advanced",
+        "question_type": "Where is virtual vs invoice volume most discrepant?",
+        "question_description": "This question analyzes the discrepancy between virtual and invoiced volumes to identify potential planning or reporting gaps. Understanding where these discrepancies occur can help pinpoint inefficiencies or inaccuracies in the supply chain, leading to improved operational strategies.",
+        "question_sql": "SELECT region_code, city_name, category, SUM(si_total_virtual_cases) AS total_virtual_cases, SUM(si_invoices_cases) AS total_invoices_cases, ABS(SUM(si_total_virtual_cases) - SUM(si_invoices_cases)) AS volume_discrepancy FROM sales_data GROUP BY region_code, city_name, category ORDER BY volume_discrepancy DESC LIMIT 10;",
+        "answer_template": "In {region_code}, {city_name}, for the {category} category, the total virtual volume was {total_virtual_cases} cases, while the invoiced volume was {total_invoices_cases} cases, resulting in a discrepancy of {volume_discrepancy} cases.",
+        "question_sql_template": "SELECT region_code, city_name, category, SUM(si_total_virtual_cases) AS total_virtual_cases, SUM(si_invoices_cases) AS total_invoices_cases, ABS(SUM(si_total_virtual_cases) - SUM(si_invoices_cases)) AS volume_discrepancy FROM sales_data WHERE period_id = {{period_id}} GROUP BY region_code, city_name, category ORDER BY volume_discrepancy DESC LIMIT 10;",
+        "question_inputs": [
+            {
+                "name": "period_id",
+                "type": "categorical",
+                "example": 202401,
+                "unique_values": [
+                    202401,
+                    202402,
+                    202403,
+                    202404,
+                    202405,
+                    202406,
+                    202407,
+                    202408,
+                    202409,
+                    202501,
+                    202502,
+                    202503,
+                    202504,
+                    202505,
+                    202506,
+                    202507,
+                    202508,
+                    202509
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 21,
+        "question_example": "What is YoY change in sell-in by category and channel?",
+        "question_complexity": "advanced",
+        "question_type": "What is YoY change in sell-in by category and channel?",
+        "question_description": "This question analyzes the year-over-year (YoY) change in sell-in volume by category and distribution channel. It provides insights into how different product categories and channels are performing over time, highlighting growth or decline trends. This analysis is crucial for understanding market dynamics and making informed business decisions.",
+        "question_sql": "SELECT category, distribution_channel, (SUM(CASE WHEN period_id BETWEEN 202501 AND 202509 THEN si_invoices_cases ELSE 0 END) - SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN si_invoices_cases ELSE 0 END)) * 100.0 / NULLIF(SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN si_invoices_cases ELSE 0 END), 0) AS yoy_change_percentage FROM sales_data WHERE period_id BETWEEN 202401 AND 202509 GROUP BY category, distribution_channel ORDER BY category, distribution_channel;",
+        "answer_template": "The year-over-year change in sell-in volume for {category} in distribution channel {distribution_channel} is {yoy_change_percentage}%.",
+        "question_sql_template": "SELECT category, distribution_channel, (SUM(CASE WHEN period_id BETWEEN 202501 AND 202509 THEN si_invoices_cases ELSE 0 END) - SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN si_invoices_cases ELSE 0 END)) * 100.0 / NULLIF(SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN si_invoices_cases ELSE 0 END), 0) AS yoy_change_percentage FROM sales_data WHERE period_id BETWEEN 202401 AND 202509 GROUP BY category, distribution_channel ORDER BY category, distribution_channel;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            },
+            {
+                "name": "distribution_channel",
+                "type": "categorical",
+                "example": 20,
+                "unique_values": [
+                    20,
+                    45
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 22,
+        "question_example": "Which flavours drive the most gross profit?",
+        "question_complexity": "simple",
+        "question_type": "Which flavours drive the most gross profit?",
+        "question_description": "This question analyzes which product flavours generate the highest gross profit in the beverage sales dataset. Understanding the most profitable flavours helps in strategic decision-making for product focus and marketing efforts.",
+        "question_sql": "SELECT product_flavour, SUM(si_gross_profit_value_lcl) AS total_gross_profit FROM sales_data GROUP BY product_flavour ORDER BY total_gross_profit DESC LIMIT 5;",
+        "answer_template": "The top flavours driving the most gross profit are {flavour} with a total gross profit of {total_gross_profit} LCL.",
+        "question_sql_template": "SELECT product_flavour, SUM(si_gross_profit_value_lcl) AS total_gross_profit FROM sales_data GROUP BY product_flavour ORDER BY total_gross_profit DESC LIMIT {{limit}};",
+        "question_inputs": [
+            {
+                "name": "limit",
+                "type": "numeric",
+                "example": 5,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 23,
+        "question_example": "How does ASP differ by packaging within category?",
+        "question_complexity": "advanced",
+        "question_type": "How does ASP differ by packaging within category?",
+        "question_description": "This question analyzes the differences in average selling price (ASP) per case across different packaging types within each beverage category. Understanding these differences helps identify pricing strategies and consumer preferences for various packaging formats, which can inform marketing and production decisions.",
+        "question_sql": "SELECT category, packaging_code, AVG(si_asp_value_per_case) AS avg_asp_per_case FROM sales_data WHERE si_asp_value_per_case IS NOT NULL GROUP BY category, packaging_code ORDER BY category, avg_asp_per_case DESC;",
+        "answer_template": "The average ASP per case for {category} in {packaging_code} packaging is {avg_asp_per_case} LCL.",
+        "question_sql_template": "SELECT category, packaging_code, AVG(si_asp_value_per_case) AS avg_asp_per_case FROM sales_data WHERE si_asp_value_per_case IS NOT NULL GROUP BY category, packaging_code ORDER BY category, avg_asp_per_case DESC;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            },
+            {
+                "name": "packaging_code",
+                "type": "categorical",
+                "example": "PET",
+                "unique_values": [
+                    "CAN",
+                    "GLS",
+                    "PET"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 24,
+        "question_example": "Which regions show the largest gap between orders and invoices?",
+        "question_complexity": "advanced",
+        "question_type": "Which regions show the largest gap between orders and invoices?",
+        "question_description": "This question analyzes the regions with the largest discrepancies between ordered cases and invoiced cases. Understanding these gaps is crucial for identifying potential issues in order fulfillment and supply chain efficiency, which can impact customer satisfaction and operational costs.",
+        "question_sql": "SELECT region_code, SUM(si_orders_cases) AS total_orders, SUM(si_invoices_cases) AS total_invoices, SUM(si_orders_cases) - SUM(si_invoices_cases) AS gap FROM sales_data GROUP BY region_code ORDER BY gap DESC;",
+        "answer_template": "In the region {region_code}, the total orders were {total_orders} cases, while the total invoices were {total_invoices} cases, resulting in a gap of {gap} cases.",
+        "question_sql_template": "SELECT region_code, SUM(si_orders_cases) AS total_orders, SUM(si_invoices_cases) AS total_invoices, SUM(si_orders_cases) - SUM(si_invoices_cases) AS gap FROM sales_data GROUP BY region_code ORDER BY gap DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 25,
+        "question_example": "What are total sell-out units and value by month?",
+        "question_complexity": "simple",
+        "question_type": "What are total sell-out units and value by month?",
+        "question_description": "This question analyzes the total sell-out units and value by month, providing insights into monthly demand trends. Understanding these trends helps businesses identify peak sales periods and adjust inventory and marketing strategies accordingly.",
+        "question_sql": "SELECT period_id, SUM(so_units) AS total_sell_out_units, SUM(so_value_lcl) AS total_sell_out_value FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "For the month ending in {period_id}, the total sell-out volume was {total_sell_out_units} units with a value of {total_sell_out_value} LCL.",
+        "question_sql_template": "SELECT period_id, SUM(so_units) AS total_sell_out_units, SUM(so_value_lcl) AS total_sell_out_value FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 26,
+        "question_example": "What is sell-out by category and region?",
+        "question_complexity": "simple",
+        "question_type": "What is sell-out by category and region?",
+        "question_description": "This question analyzes the sell-out volume and value of beverages by category and region. It provides insights into the demand distribution across different product categories and geographical regions, helping to identify which categories are performing well in specific areas.",
+        "question_sql": "SELECT category, region_code, SUM(so_units) AS total_sell_out_units, SUM(so_value_lcl) AS total_sell_out_value FROM sales_data GROUP BY category, region_code ORDER BY category, region_code;",
+        "answer_template": "The total sell-out for {category} in the {region} region was {total_sell_out_units} units with a value of {total_sell_out_value} LCL.",
+        "question_sql_template": "SELECT category, region_code, SUM(so_units) AS total_sell_out_units, SUM(so_value_lcl) AS total_sell_out_value FROM sales_data WHERE category = '{{category}}' AND region_code = '{{region_code}}' GROUP BY category, region_code ORDER BY category, region_code;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            },
+            {
+                "name": "region_code",
+                "type": "categorical",
+                "example": "JAL",
+                "unique_values": [
+                    "JAL",
+                    "SLP",
+                    "TMS"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 27,
+        "question_example": "What is average net price vs retail price by channel?",
+        "question_complexity": "simple",
+        "question_type": "What is average net price vs retail price by channel?",
+        "question_description": "This question analyzes the average net price compared to the retail price across different distribution channels. It provides insights into the pricing strategy and discounting practices within each channel, highlighting potential differences in price realization.",
+        "question_sql": "SELECT distribution_channel, AVG(net_price_lcl) AS avg_net_price, AVG(retail_price_lcl) AS avg_retail_price FROM sales_data GROUP BY distribution_channel ORDER BY distribution_channel;",
+        "answer_template": "The average net price for distribution channel {distribution_channel} is {avg_net_price} LCL, while the average retail price is {avg_retail_price} LCL.",
+        "question_sql_template": "SELECT distribution_channel, AVG(net_price_lcl) AS avg_net_price, AVG(retail_price_lcl) AS avg_retail_price FROM sales_data GROUP BY distribution_channel ORDER BY distribution_channel;",
+        "question_inputs": [
+            {
+                "name": "distribution_channel",
+                "type": "categorical",
+                "example": 20,
+                "unique_values": [
+                    20,
+                    45
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 28,
+        "question_example": "What is the sell-out returns rate by month?",
+        "question_complexity": "simple",
+        "question_type": "What is the sell-out returns rate by month?",
+        "question_description": "This question analyzes the sell-out returns rate by month, providing insights into the percentage of products returned by customers relative to the total units sold each month. Understanding the returns rate is crucial for assessing product quality and customer satisfaction, as well as identifying potential issues in the supply chain or product offerings.",
+        "question_sql": "SELECT period_id, SUM(so_returns_units) * 1.0 / SUM(so_units) AS returns_rate FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "The sell-out returns rate for {month} is {returns_rate}%.",
+        "question_sql_template": "SELECT period_id, SUM(so_returns_units) * 1.0 / SUM(so_units) AS returns_rate FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 29,
+        "question_example": "Which products lead in sell-out units?",
+        "question_complexity": "simple",
+        "question_type": "Which products lead in sell-out units?",
+        "question_description": "This question identifies the products that lead in sell-out units, providing insights into which products are most popular among consumers. Understanding the top-selling products helps in inventory planning, marketing strategies, and identifying consumer preferences.",
+        "question_sql": "SELECT product_salesarea_sk, SUM(so_units) AS total_sell_out_units FROM sales_data GROUP BY product_salesarea_sk ORDER BY total_sell_out_units DESC LIMIT 5;",
+        "answer_template": "The top products leading in sell-out units are: {product_salesarea_sk} with {total_sell_out_units} units sold.",
+        "question_sql_template": "SELECT product_salesarea_sk, SUM(so_units) AS total_sell_out_units FROM sales_data GROUP BY product_salesarea_sk ORDER BY total_sell_out_units DESC LIMIT {{top_n}};",
+        "question_inputs": [
+            {
+                "name": "top_n",
+                "type": "numeric",
+                "example": 5,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 30,
+        "question_example": "How sensitive are sell-out units to net price changes?",
+        "question_complexity": "advanced",
+        "question_type": "How sensitive are sell-out units to net price changes?",
+        "question_description": "This question analyzes the sensitivity of sell-out units to changes in net price, providing insights into price elasticity. Understanding this relationship helps businesses optimize pricing strategies to maximize sales volume and revenue.",
+        "question_sql": "SELECT category, AVG(so_units) AS avg_sell_out_units, AVG(net_price_lcl) AS avg_net_price, (MAX(so_units) - MIN(so_units)) / (MAX(net_price_lcl) - MIN(net_price_lcl)) AS price_sensitivity FROM sales_data WHERE net_price_lcl IS NOT NULL AND so_units IS NOT NULL GROUP BY category ORDER BY price_sensitivity DESC;",
+        "answer_template": "The price sensitivity for {category} is {price_sensitivity}, indicating how sell-out units respond to changes in net price.",
+        "question_sql_template": "SELECT category, AVG(so_units) AS avg_sell_out_units, AVG(net_price_lcl) AS avg_net_price, (MAX(so_units) - MIN(so_units)) / (MAX(net_price_lcl) - MIN(net_price_lcl)) AS price_sensitivity FROM sales_data WHERE net_price_lcl IS NOT NULL AND so_units IS NOT NULL GROUP BY category ORDER BY price_sensitivity DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 31,
+        "question_example": "What is YoY sell-out growth by category and region?",
+        "question_complexity": "advanced",
+        "question_type": "What is YoY sell-out growth by category and region?",
+        "question_description": "This question analyzes the year-over-year (YoY) growth in sell-out units by category and region. It provides insights into how demand for different beverage categories has changed across various regions over time, helping to identify trends and growth opportunities.",
+        "question_sql": "SELECT category, region_code, (SUM(CASE WHEN period_id BETWEEN 202501 AND 202509 THEN so_units ELSE 0 END) - SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN so_units ELSE 0 END)) * 100.0 / NULLIF(SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN so_units ELSE 0 END), 0) AS yoy_growth_pct FROM sales_data GROUP BY category, region_code ORDER BY yoy_growth_pct DESC;",
+        "answer_template": "The year-over-year sell-out growth for {category} in {region} is {yoy_growth_pct}%.",
+        "question_sql_template": "SELECT category, region_code, (SUM(CASE WHEN period_id BETWEEN {{start_period_2025}} AND {{end_period_2025}} THEN so_units ELSE 0 END) - SUM(CASE WHEN period_id BETWEEN {{start_period_2024}} AND {{end_period_2024}} THEN so_units ELSE 0 END)) * 100.0 / NULLIF(SUM(CASE WHEN period_id BETWEEN {{start_period_2024}} AND {{end_period_2024}} THEN so_units ELSE 0 END), 0) AS yoy_growth_pct FROM sales_data GROUP BY category, region_code ORDER BY yoy_growth_pct DESC;",
+        "question_inputs": [
+            {
+                "name": "start_period_2024",
+                "type": "numeric",
+                "example": 202401,
+                "unique_values": null
+            },
+            {
+                "name": "end_period_2024",
+                "type": "numeric",
+                "example": 202409,
+                "unique_values": null
+            },
+            {
+                "name": "start_period_2025",
+                "type": "numeric",
+                "example": 202501,
+                "unique_values": null
+            },
+            {
+                "name": "end_period_2025",
+                "type": "numeric",
+                "example": 202509,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 32,
+        "question_example": "Where is the list-to-net price gap largest?",
+        "question_complexity": "advanced",
+        "question_type": "Where is the list-to-net price gap largest?",
+        "question_description": "This question analyzes the regions or channels where the gap between the list price and the net price is the largest. Understanding this gap is crucial for identifying areas with significant discounting or pricing strategies that may impact profitability. Insights from this analysis can help in optimizing pricing strategies and improving revenue management.",
+        "question_sql": "SELECT distribution_channel, region_code, AVG(retail_price_lcl - net_price_lcl) AS avg_price_gap FROM sales_data GROUP BY distribution_channel, region_code ORDER BY avg_price_gap DESC LIMIT 5;",
+        "answer_template": "The largest list-to-net price gap is observed in {distribution_channel} channel and {region_code} region with an average gap of {avg_price_gap} LCL.",
+        "question_sql_template": "SELECT distribution_channel, region_code, AVG(retail_price_lcl - net_price_lcl) AS avg_price_gap FROM sales_data GROUP BY distribution_channel, region_code ORDER BY avg_price_gap DESC LIMIT {{top_n}};",
+        "question_inputs": [
+            {
+                "name": "top_n",
+                "type": "numeric",
+                "example": 5,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 33,
+        "question_example": "Which POCs underperform in sell-out vs peers at similar price?",
+        "question_complexity": "advanced",
+        "question_type": "Which POCs underperform in sell-out vs peers at similar price?",
+        "question_description": "This question identifies Points of Customer (POCs) that underperform in sell-out volume compared to their peers at similar net price levels. It is crucial for understanding which POCs may require strategic interventions to boost sales performance, despite having competitive pricing. Insights from this analysis can guide targeted marketing or operational adjustments.",
+        "question_sql": "SELECT customer_salesarea_sk, AVG(so_units) AS avg_sell_out_units, AVG(net_price_lcl) AS avg_net_price FROM sales_data WHERE net_price_lcl IS NOT NULL GROUP BY customer_salesarea_sk HAVING avg_sell_out_units < (SELECT AVG(so_units) FROM sales_data WHERE net_price_lcl BETWEEN avg_net_price - 0.5 AND avg_net_price + 0.5) ORDER BY avg_sell_out_units ASC;",
+        "answer_template": "The POC with ID {customer_salesarea_sk} has an average sell-out of {avg_sell_out_units} units at an average net price of {avg_net_price} LCL, which is below the peer average.",
+        "question_sql_template": "SELECT customer_salesarea_sk, AVG(so_units) AS avg_sell_out_units, AVG(net_price_lcl) AS avg_net_price FROM sales_data WHERE net_price_lcl IS NOT NULL GROUP BY customer_salesarea_sk HAVING avg_sell_out_units < (SELECT AVG(so_units) FROM sales_data WHERE net_price_lcl BETWEEN avg_net_price - {{price_range}} AND avg_net_price + {{price_range}}) ORDER BY avg_sell_out_units ASC;",
+        "question_inputs": [
+            {
+                "name": "price_range",
+                "type": "numeric",
+                "example": 0.5,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 34,
+        "question_example": "Which packaging formats outperform after controlling for price?",
+        "question_complexity": "advanced",
+        "question_type": "Which packaging formats outperform after controlling for price?",
+        "question_description": "This question analyzes which packaging formats (CAN, GLS, PET) outperform in terms of sell-out units after controlling for net price. It provides insights into consumer preferences for different packaging types when price is accounted for, helping to identify the most effective packaging strategies.",
+        "question_sql": "SELECT packaging_code, AVG(so_units) AS avg_sell_out_units, AVG(net_price_lcl) AS avg_net_price FROM sales_data GROUP BY packaging_code ORDER BY avg_sell_out_units DESC;",
+        "answer_template": "The packaging format {packaging_code} has an average sell-out of {avg_sell_out_units} units with an average net price of {avg_net_price} LCL.",
+        "question_sql_template": "SELECT packaging_code, AVG(so_units) AS avg_sell_out_units, AVG(net_price_lcl) AS avg_net_price FROM sales_data WHERE net_price_lcl BETWEEN {{min_price}} AND {{max_price}} GROUP BY packaging_code ORDER BY avg_sell_out_units DESC;",
+        "question_inputs": [
+            {
+                "name": "min_price",
+                "type": "numeric",
+                "example": 10.0,
+                "unique_values": null
+            },
+            {
+                "name": "max_price",
+                "type": "numeric",
+                "example": 20.0,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 35,
+        "question_example": "What is average days of supply by category and region?",
+        "question_complexity": "simple",
+        "question_type": "What is average days of supply by category and region?",
+        "question_description": "This question analyzes the average days of supply for beverages by category and region. Understanding days of supply helps businesses manage inventory levels effectively, ensuring that there is neither overstock nor stockouts. This insight is crucial for optimizing supply chain operations and maintaining customer satisfaction.",
+        "question_sql": "SELECT category, region_code, AVG(days_of_supply) AS average_days_of_supply FROM sales_data GROUP BY category, region_code ORDER BY category, region_code;",
+        "answer_template": "The average days of supply for {category} in the {region_code} region is {average_days_of_supply} days.",
+        "question_sql_template": "SELECT category, region_code, AVG(days_of_supply) AS average_days_of_supply FROM sales_data GROUP BY category, region_code ORDER BY category, region_code;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            },
+            {
+                "name": "region_code",
+                "type": "categorical",
+                "example": "JAL",
+                "unique_values": [
+                    "JAL",
+                    "SLP",
+                    "TMS"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 36,
+        "question_example": "How do receipts compare to invoices per month?",
+        "question_complexity": "simple",
+        "question_type": "How do receipts compare to invoices per month?",
+        "question_description": "This question analyzes the alignment between receipts and invoices on a monthly basis. It helps identify discrepancies in the flow of goods into the inventory compared to what was billed, providing insights into potential issues in supply chain management or billing processes.",
+        "question_sql": "SELECT period_id, SUM(receipts_units) AS total_receipts_units, SUM(si_invoices_cases) AS total_invoices_cases FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "In {period_id}, the total receipts were {total_receipts_units} units, while the total invoices were {total_invoices_cases} cases.",
+        "question_sql_template": "SELECT period_id, SUM(receipts_units) AS total_receipts_units, SUM(si_invoices_cases) AS total_invoices_cases FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 37,
+        "question_example": "How do shipments compare to sell-out per month?",
+        "question_complexity": "simple",
+        "question_type": "How do shipments compare to sell-out per month?",
+        "question_description": "This question analyzes the alignment between shipments and sell-out units on a monthly basis. It helps identify discrepancies between the number of units shipped to customers and the actual units sold, providing insights into inventory management and potential overstock or stockout situations.",
+        "question_sql": "SELECT period_id, SUM(shipments_units) AS total_shipments, SUM(so_units) AS total_sell_out FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "In {period_id}, the total shipments were {total_shipments} units, while the total sell-out was {total_sell_out} units.",
+        "question_sql_template": "SELECT period_id, SUM(shipments_units) AS total_shipments, SUM(so_units) AS total_sell_out FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 38,
+        "question_example": "Where are adjustments unusually high (\u00b1)?",
+        "question_complexity": "simple",
+        "question_type": "Where are adjustments unusually high (\u00b1)?",
+        "question_description": "This question analyzes the regions and periods where inventory adjustments are unusually high or low. It helps identify potential data entry errors, process inefficiencies, or unusual inventory movements. Understanding these adjustments can provide insights into operational challenges or opportunities for process improvements.",
+        "question_sql": "SELECT region_code, period_id, SUM(adjustments_units) AS total_adjustments FROM sales_data GROUP BY region_code, period_id HAVING ABS(SUM(adjustments_units)) > 10 ORDER BY ABS(total_adjustments) DESC LIMIT 10;",
+        "answer_template": "In {region_code} during period {period_id}, the total inventory adjustments were {total_adjustments} units, indicating significant inventory changes.",
+        "question_sql_template": "SELECT region_code, period_id, SUM(adjustments_units) AS total_adjustments FROM sales_data GROUP BY region_code, period_id HAVING ABS(SUM(adjustments_units)) > {{threshold}} ORDER BY ABS(total_adjustments) DESC LIMIT {{limit}};",
+        "question_inputs": [
+            {
+                "name": "threshold",
+                "type": "numeric",
+                "example": 10,
+                "unique_values": null
+            },
+            {
+                "name": "limit",
+                "type": "numeric",
+                "example": 10,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 39,
+        "question_example": "How does closing stock trend over time?",
+        "question_complexity": "simple",
+        "question_type": "How does closing stock trend over time?",
+        "question_description": "This question analyzes the trend of closing stock units over time, providing insights into inventory accumulation or depletion patterns. Understanding these trends is crucial for managing stock levels, ensuring product availability, and optimizing supply chain efficiency.",
+        "question_sql": "SELECT period_id, SUM(closing_stock_units) AS total_closing_stock FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "The total closing stock for period {period_id} was {total_closing_stock} units.",
+        "question_sql_template": "SELECT period_id, SUM(closing_stock_units) AS total_closing_stock FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 40,
+        "question_example": "Which POCs repeatedly fall below 5 days of supply?",
+        "question_complexity": "advanced",
+        "question_type": "Which POCs repeatedly fall below 5 days of supply?",
+        "question_description": "This question identifies Points of Customer (POCs) that consistently fall below 5 days of supply, indicating potential stockout risks. Monitoring these POCs is crucial for maintaining adequate inventory levels and ensuring product availability, which can prevent lost sales and improve customer satisfaction.",
+        "question_sql": "SELECT customer_salesarea_sk, COUNT(*) AS low_supply_count FROM sales_data WHERE days_of_supply < 5 GROUP BY customer_salesarea_sk HAVING low_supply_count > 1 ORDER BY low_supply_count DESC;",
+        "answer_template": "The POC with ID {customer_salesarea_sk} has fallen below 5 days of supply {low_supply_count} times.",
+        "question_sql_template": "SELECT customer_salesarea_sk, COUNT(*) AS low_supply_count FROM sales_data WHERE days_of_supply < {{days_threshold}} GROUP BY customer_salesarea_sk HAVING low_supply_count > {{occurrence_threshold}} ORDER BY low_supply_count DESC;",
+        "question_inputs": [
+            {
+                "name": "days_threshold",
+                "type": "numeric",
+                "example": 5,
+                "unique_values": null
+            },
+            {
+                "name": "occurrence_threshold",
+                "type": "numeric",
+                "example": 1,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 41,
+        "question_example": "What are inventory turns by POC and category?",
+        "question_complexity": "advanced",
+        "question_type": "What are inventory turns by POC and category?",
+        "question_description": "This question analyzes inventory turns by Point of Customer (POC) and category, which is a measure of how efficiently inventory is being used. Inventory turns indicate how often inventory is sold and replaced over a period, providing insights into inventory management and potential areas for improvement.",
+        "question_sql": "SELECT customer_salesarea_sk, category, SUM(shipments_units) / NULLIF(SUM(opening_stock_units + closing_stock_units) / 2, 0) AS inventory_turns FROM sales_data GROUP BY customer_salesarea_sk, category ORDER BY inventory_turns DESC;",
+        "answer_template": "The inventory turns for POC {customer_salesarea_sk} in the {category} category is {inventory_turns}.",
+        "question_sql_template": "SELECT customer_salesarea_sk, category, SUM(shipments_units) / NULLIF(SUM(opening_stock_units + closing_stock_units) / 2, 0) AS inventory_turns FROM sales_data WHERE category = '{{category}}' GROUP BY customer_salesarea_sk, category ORDER BY inventory_turns DESC;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 42,
+        "question_example": "Where does the stock balance equation not reconcile?",
+        "question_complexity": "advanced",
+        "question_type": "Where does the stock balance equation not reconcile?",
+        "question_description": "This question analyzes discrepancies in the stock balance equation, which is crucial for identifying data integrity issues or process errors in inventory management. By examining where the calculated closing stock does not match the expected value based on opening stock, receipts, shipments, and adjustments, businesses can pinpoint areas that may require further investigation or correction.",
+        "question_sql": "SELECT customer_salesarea_sk, product_salesarea_sk, period_id, opening_stock_units, receipts_units, shipments_units, adjustments_units, closing_stock_units, (opening_stock_units + receipts_units - shipments_units + adjustments_units) AS calculated_closing_stock FROM sales_data WHERE closing_stock_units != (opening_stock_units + receipts_units - shipments_units + adjustments_units) ORDER BY period_id, customer_salesarea_sk, product_salesarea_sk;",
+        "answer_template": "For period {period_id}, the stock balance for customer {customer_salesarea_sk} and product {product_salesarea_sk} shows a discrepancy. The calculated closing stock is {calculated_closing_stock} units, while the recorded closing stock is {closing_stock_units} units.",
+        "question_sql_template": "SELECT customer_salesarea_sk, product_salesarea_sk, period_id, opening_stock_units, receipts_units, shipments_units, adjustments_units, closing_stock_units, (opening_stock_units + receipts_units - shipments_units + adjustments_units) AS calculated_closing_stock FROM sales_data WHERE closing_stock_units != (opening_stock_units + receipts_units - shipments_units + adjustments_units) ORDER BY period_id, customer_salesarea_sk, product_salesarea_sk;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 43,
+        "question_example": "Do receipts lead shipments ahead of peak months?",
+        "question_complexity": "advanced",
+        "question_type": "Do receipts lead shipments ahead of peak months?",
+        "question_description": "This question analyzes whether receipts of inventory lead shipments ahead of peak months, which can indicate pre-build behavior in anticipation of increased demand. Understanding this pattern helps in assessing inventory management strategies and ensuring adequate stock levels during high-demand periods.",
+        "question_sql": "SELECT period_id, category, SUM(receipts_units) AS total_receipts, SUM(shipments_units) AS total_shipments FROM sales_data WHERE period_id IN (202405, 202406, 202407, 202408) GROUP BY period_id, category ORDER BY period_id, category;",
+        "answer_template": "In {period_id}, the total receipts for {category} were {total_receipts} units, while the total shipments were {total_shipments} units.",
+        "question_sql_template": "SELECT period_id, category, SUM(receipts_units) AS total_receipts, SUM(shipments_units) AS total_shipments FROM sales_data WHERE period_id IN ({{peak_months}}) GROUP BY period_id, category ORDER BY period_id, category;",
+        "question_inputs": [
+            {
+                "name": "peak_months",
+                "type": "categorical",
+                "example": "202405, 202406, 202407, 202408",
+                "unique_values": [
+                    "202405",
+                    "202406",
+                    "202407",
+                    "202408"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 44,
+        "question_example": "Which channels carry excess inventory vs peers?",
+        "question_complexity": "advanced",
+        "question_type": "Which channels carry excess inventory vs peers?",
+        "question_description": "This question analyzes which distribution channels have excess inventory compared to their peers. It helps identify potential inefficiencies in inventory management across different channels, which can lead to improved stock allocation and reduced holding costs.",
+        "question_sql": "SELECT distribution_channel, AVG(days_of_supply) AS avg_days_of_supply FROM sales_data GROUP BY distribution_channel ORDER BY avg_days_of_supply DESC;",
+        "answer_template": "The distribution channel {distribution_channel} has an average of {avg_days_of_supply} days of supply, indicating potential excess inventory compared to peers.",
+        "question_sql_template": "SELECT distribution_channel, AVG(days_of_supply) AS avg_days_of_supply FROM sales_data GROUP BY distribution_channel ORDER BY avg_days_of_supply DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 45,
+        "question_example": "What is average unit/value share by category and region?",
+        "question_complexity": "simple",
+        "question_type": "What is average unit/value share by category and region?",
+        "question_description": "This question analyzes the average unit and value market share by category and region. It provides insights into the competitive position of different beverage categories across various regions, helping to identify areas of strength and potential growth opportunities.",
+        "question_sql": "SELECT category, region_code, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data GROUP BY category, region_code ORDER BY category, region_code;",
+        "answer_template": "The average unit share for {category} in {region_code} is {avg_share_units_pct}%, and the average value share is {avg_share_value_pct}%.",
+        "question_sql_template": "SELECT category, region_code, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data GROUP BY category, region_code ORDER BY category, region_code;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 46,
+        "question_example": "What is the distribution of share ranks by category?",
+        "question_complexity": "simple",
+        "question_type": "What is the distribution of share ranks by category?",
+        "question_description": "This question analyzes the distribution of share ranks across different beverage categories. Understanding the distribution of share ranks helps identify which categories are leading or lagging in market share, providing insights into competitive positioning and potential areas for strategic focus.",
+        "question_sql": "SELECT category, share_rank, COUNT(*) AS rank_count FROM sales_data GROUP BY category, share_rank ORDER BY category, share_rank;",
+        "answer_template": "The distribution of share ranks for the {category} category shows that rank {share_rank} has {rank_count} occurrences.",
+        "question_sql_template": "SELECT category, share_rank, COUNT(*) AS rank_count FROM sales_data GROUP BY category, share_rank ORDER BY category, share_rank;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 47,
+        "question_example": "How large is the market (units/value) by month?",
+        "question_complexity": "simple",
+        "question_type": "How large is the market (units/value) by month?",
+        "question_description": "This question analyzes the market size in terms of units and value for each month. Understanding the market size by month helps in identifying trends, seasonal patterns, and potential growth opportunities. It provides insights into the overall market dynamics and helps in strategic planning.",
+        "question_sql": "SELECT period_id, SUM(market_units) AS total_market_units, SUM(market_value_lcl) AS total_market_value FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "The market size for {period_id} was {total_market_units} units with a value of {total_market_value} LCL.",
+        "question_sql_template": "SELECT period_id, SUM(market_units) AS total_market_units, SUM(market_value_lcl) AS total_market_value FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 48,
+        "question_example": "Which cities have the highest unit share?",
+        "question_complexity": "simple",
+        "question_type": "Which cities have the highest unit share?",
+        "question_description": "This question analyzes which cities have the highest unit share in the beverage market. It provides insights into geographic areas where the company holds a significant portion of the market, helping to identify strongholds and potential areas for strategic focus.",
+        "question_sql": "SELECT city_name, MAX(share_units_pct) AS max_unit_share FROM sales_data GROUP BY city_name ORDER BY max_unit_share DESC LIMIT 5;",
+        "answer_template": "The cities with the highest unit share are {city_name} with a unit share of {max_unit_share}%.",
+        "question_sql_template": "SELECT city_name, MAX(share_units_pct) AS max_unit_share FROM sales_data GROUP BY city_name ORDER BY max_unit_share DESC LIMIT {{top_n}};",
+        "question_inputs": [
+            {
+                "name": "top_n",
+                "type": "numeric",
+                "example": 5,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 49,
+        "question_example": "What is YoY change in unit/value share by region?",
+        "question_complexity": "advanced",
+        "question_type": "What is YoY change in unit/value share by region?",
+        "question_description": "This question analyzes the year-over-year (YoY) change in unit and value share by region. It provides insights into how the market share has evolved over time, highlighting regions with significant growth or decline. This analysis is crucial for understanding competitive dynamics and identifying strategic opportunities or threats in different regions.",
+        "question_sql": "SELECT region_code, (SUM(CASE WHEN period_id BETWEEN 202501 AND 202509 THEN share_units_pct ELSE 0 END) - SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN share_units_pct ELSE 0 END)) / SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN share_units_pct ELSE 0 END) * 100 AS yoy_change_units_pct, (SUM(CASE WHEN period_id BETWEEN 202501 AND 202509 THEN share_value_pct ELSE 0 END) - SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN share_value_pct ELSE 0 END)) / SUM(CASE WHEN period_id BETWEEN 202401 AND 202409 THEN share_value_pct ELSE 0 END) * 100 AS yoy_change_value_pct FROM sales_data WHERE period_id BETWEEN 202401 AND 202509 GROUP BY region_code ORDER BY region_code;",
+        "answer_template": "The year-over-year change in unit share for {region_code} is {yoy_change_units_pct}% and in value share is {yoy_change_value_pct}%.",
+        "question_sql_template": "SELECT region_code, (SUM(CASE WHEN period_id BETWEEN {{start_period_2025}} AND {{end_period_2025}} THEN share_units_pct ELSE 0 END) - SUM(CASE WHEN period_id BETWEEN {{start_period_2024}} AND {{end_period_2024}} THEN share_units_pct ELSE 0 END)) / SUM(CASE WHEN period_id BETWEEN {{start_period_2024}} AND {{end_period_2024}} THEN share_units_pct ELSE 0 END) * 100 AS yoy_change_units_pct, (SUM(CASE WHEN period_id BETWEEN {{start_period_2025}} AND {{end_period_2025}} THEN share_value_pct ELSE 0 END) - SUM(CASE WHEN period_id BETWEEN {{start_period_2024}} AND {{end_period_2024}} THEN share_value_pct ELSE 0 END)) / SUM(CASE WHEN period_id BETWEEN {{start_period_2024}} AND {{end_period_2024}} THEN share_value_pct ELSE 0 END) * 100 AS yoy_change_value_pct FROM sales_data WHERE period_id BETWEEN {{start_period_2024}} AND {{end_period_2025}} GROUP BY region_code ORDER BY region_code;",
+        "question_inputs": [
+            {
+                "name": "start_period_2024",
+                "type": "numeric",
+                "example": 202401,
+                "unique_values": null
+            },
+            {
+                "name": "end_period_2024",
+                "type": "numeric",
+                "example": 202409,
+                "unique_values": null
+            },
+            {
+                "name": "start_period_2025",
+                "type": "numeric",
+                "example": 202501,
+                "unique_values": null
+            },
+            {
+                "name": "end_period_2025",
+                "type": "numeric",
+                "example": 202509,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 50,
+        "question_example": "How does net price correlate with unit share?",
+        "question_complexity": "advanced",
+        "question_type": "How does net price correlate with unit share?",
+        "question_description": "This question analyzes the correlation between net price and unit share across different categories. Understanding this relationship helps identify how pricing strategies impact market share, providing insights into competitive positioning and pricing effectiveness.",
+        "question_sql": "SELECT category, AVG(net_price_lcl) AS avg_net_price, AVG(share_units_pct) AS avg_share_units_pct FROM sales_data GROUP BY category ORDER BY avg_net_price DESC;",
+        "answer_template": "The average net price for {category} is {avg_net_price} LCL, with an average unit share of {avg_share_units_pct}%.",
+        "question_sql_template": "SELECT category, AVG(net_price_lcl) AS avg_net_price, AVG(share_units_pct) AS avg_share_units_pct FROM sales_data WHERE category = '{{category}}' GROUP BY category ORDER BY avg_net_price DESC;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 51,
+        "question_example": "Which POCs have high share but low absolute units?",
+        "question_complexity": "advanced",
+        "question_type": "Which POCs have high share but low absolute units?",
+        "question_description": "This question identifies Points of Customer (POCs) that have a high market share percentage but low absolute sell-out units. It helps in understanding which POCs are performing well in terms of market share despite having lower sales volumes, indicating potential for growth or strategic importance.",
+        "question_sql": "SELECT customer_salesarea_sk, AVG(share_units_pct) AS avg_share_units_pct, SUM(so_units) AS total_so_units FROM sales_data GROUP BY customer_salesarea_sk HAVING avg_share_units_pct > 0.01 AND total_so_units < 1000 ORDER BY avg_share_units_pct DESC, total_so_units ASC LIMIT 10;",
+        "answer_template": "The POC {customer_salesarea_sk} has an average market share of {avg_share_units_pct}% with a total sell-out of {total_so_units} units.",
+        "question_sql_template": "SELECT customer_salesarea_sk, AVG(share_units_pct) AS avg_share_units_pct, SUM(so_units) AS total_so_units FROM sales_data GROUP BY customer_salesarea_sk HAVING avg_share_units_pct > {{min_share_units_pct}} AND total_so_units < {{max_total_so_units}} ORDER BY avg_share_units_pct DESC, total_so_units ASC LIMIT {{limit}};",
+        "question_inputs": [
+            {
+                "name": "min_share_units_pct",
+                "type": "numeric",
+                "example": 0.01,
+                "unique_values": null
+            },
+            {
+                "name": "max_total_so_units",
+                "type": "numeric",
+                "example": 1000,
+                "unique_values": null
+            },
+            {
+                "name": "limit",
+                "type": "numeric",
+                "example": 10,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 52,
+        "question_example": "Where did share rank improve/worsen over time?",
+        "question_complexity": "advanced",
+        "question_type": "Where did share rank improve/worsen over time?",
+        "question_description": "This question analyzes the changes in share rank over time for different categories. It helps identify which categories have improved or worsened in their competitive position within the market. Understanding these trends can guide strategic decisions to enhance market performance.",
+        "question_sql": "SELECT category, period_id, share_rank, LAG(share_rank) OVER (PARTITION BY category ORDER BY period_id) AS previous_share_rank, CASE WHEN share_rank < LAG(share_rank) OVER (PARTITION BY category ORDER BY period_id) THEN 'Improved' WHEN share_rank > LAG(share_rank) OVER (PARTITION BY category ORDER BY period_id) THEN 'Worsened' ELSE 'Unchanged' END AS rank_change FROM sales_data WHERE period_id BETWEEN 202401 AND 202509 ORDER BY category, period_id;",
+        "answer_template": "For {category}, the share rank in {period_id} was {share_rank}, which has {rank_change} compared to the previous period.",
+        "question_sql_template": "SELECT category, period_id, share_rank, LAG(share_rank) OVER (PARTITION BY category ORDER BY period_id) AS previous_share_rank, CASE WHEN share_rank < LAG(share_rank) OVER (PARTITION BY category ORDER BY period_id) THEN 'Improved' WHEN share_rank > LAG(share_rank) OVER (PARTITION BY category ORDER BY period_id) THEN 'Worsened' ELSE 'Unchanged' END AS rank_change FROM sales_data WHERE period_id BETWEEN {{start_period_id}} AND {{end_period_id}} ORDER BY category, period_id;",
+        "question_inputs": [
+            {
+                "name": "start_period_id",
+                "type": "numeric",
+                "example": 202401,
+                "unique_values": null
+            },
+            {
+                "name": "end_period_id",
+                "type": "numeric",
+                "example": 202509,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 53,
+        "question_example": "Which Nielsen markets over/under-index in share?",
+        "question_complexity": "advanced",
+        "question_type": "Which Nielsen markets over/under-index in share?",
+        "question_description": "This question analyzes which Nielsen markets are over or under-indexing in market share, providing insights into regional performance and competitive positioning. Understanding these dynamics helps identify areas of strength or concern in market penetration and can guide strategic decisions for market focus.",
+        "question_sql": "SELECT nielsen_id, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data GROUP BY nielsen_id ORDER BY avg_share_units_pct DESC;",
+        "answer_template": "The Nielsen market {nielsen_id} has an average unit share of {avg_share_units_pct}% and an average value share of {avg_share_value_pct}%.",
+        "question_sql_template": "SELECT nielsen_id, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data GROUP BY nielsen_id ORDER BY avg_share_units_pct DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 54,
+        "question_example": "What is promo incidence by month and channel?",
+        "question_complexity": "simple",
+        "question_type": "What is promo incidence by month and channel?",
+        "question_description": "This question analyzes the incidence of promotions by month and distribution channel. It provides insights into how frequently promotions are activated over time and across different sales channels, which can help in understanding promotional strategies and their temporal distribution.",
+        "question_sql": "SELECT period_id, distribution_channel, COUNT(*) AS promo_count FROM sales_data WHERE promo_active_flag = 1 GROUP BY period_id, distribution_channel ORDER BY period_id, distribution_channel;",
+        "answer_template": "In {period_id}, there were {promo_count} promotions active in distribution channel {distribution_channel}.",
+        "question_sql_template": "SELECT period_id, distribution_channel, COUNT(*) AS promo_count FROM sales_data WHERE promo_active_flag = 1 GROUP BY period_id, distribution_channel ORDER BY period_id, distribution_channel;",
+        "question_inputs": [
+            {
+                "name": "period_id",
+                "type": "numeric",
+                "example": 202401,
+                "unique_values": [
+                    202401,
+                    202402,
+                    202403,
+                    202404,
+                    202405,
+                    202406,
+                    202407,
+                    202408,
+                    202409,
+                    202501,
+                    202502,
+                    202503,
+                    202504,
+                    202505,
+                    202506,
+                    202507,
+                    202508,
+                    202509
+                ]
+            },
+            {
+                "name": "distribution_channel",
+                "type": "categorical",
+                "example": 20,
+                "unique_values": [
+                    20,
+                    45
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 55,
+        "question_example": "What is the mix of promo types and mechanics?",
+        "question_complexity": "simple",
+        "question_type": "What is the mix of promo types and mechanics?",
+        "question_description": "This question analyzes the distribution of different promotion types and mechanics within the dataset. Understanding the mix of promotional strategies is crucial for assessing marketing tactics and their potential impact on sales. Insights from this analysis can help optimize promotional efforts and align them with consumer preferences.",
+        "question_sql": "SELECT promo_type, promo_mechanic, COUNT(*) AS count FROM sales_data WHERE promo_active_flag = 1 GROUP BY promo_type, promo_mechanic ORDER BY count DESC;",
+        "answer_template": "The most common promotion type is {promo_type} with a mechanic of {promo_mechanic}, occurring {count} times.",
+        "question_sql_template": "SELECT promo_type, promo_mechanic, COUNT(*) AS count FROM sales_data WHERE promo_active_flag = 1 GROUP BY promo_type, promo_mechanic ORDER BY count DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 56,
+        "question_example": "What is average discount percent by category and channel?",
+        "question_complexity": "simple",
+        "question_type": "What is average discount percent by category and channel?",
+        "question_description": "This question analyzes the average discount percentage applied to products, segmented by category and distribution channel. Understanding the discount levels across different categories and channels helps in assessing promotional strategies and their effectiveness in driving sales.",
+        "question_sql": "SELECT category, distribution_channel, AVG(discount_pct) AS average_discount_pct FROM sales_data WHERE promo_active_flag = 1 GROUP BY category, distribution_channel ORDER BY category, distribution_channel;",
+        "answer_template": "The average discount percent for {category} in distribution channel {distribution_channel} is {average_discount_pct}%.",
+        "question_sql_template": "SELECT category, distribution_channel, AVG(discount_pct) AS average_discount_pct FROM sales_data WHERE promo_active_flag = 1 GROUP BY category, distribution_channel ORDER BY category, distribution_channel;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            },
+            {
+                "name": "distribution_channel",
+                "type": "categorical",
+                "example": 20,
+                "unique_values": [
+                    20,
+                    45
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 57,
+        "question_example": "How often are feature/display/media used?",
+        "question_complexity": "simple",
+        "question_type": "How often are feature/display/media used?",
+        "question_description": "This question analyzes the frequency of promotional support tactics such as feature, display, and media support in the beverage sales dataset. Understanding the usage of these promotional elements helps in assessing the marketing strategies and their potential impact on sales performance.",
+        "question_sql": "SELECT SUM(feature_flag) AS total_feature_usage, SUM(display_flag) AS total_display_usage, SUM(media_support) AS total_media_usage FROM sales_data;",
+        "answer_template": "The promotional tactics were used as follows: Feature was used {total_feature_usage} times, Display was used {total_display_usage} times, and Media support was used {total_media_usage} times.",
+        "question_sql_template": "SELECT SUM(feature_flag) AS total_feature_usage, SUM(display_flag) AS total_display_usage, SUM(media_support) AS total_media_usage FROM sales_data;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 58,
+        "question_example": "Which flavours are most promoted?",
+        "question_complexity": "simple",
+        "question_type": "Which flavours are most promoted?",
+        "question_description": "This question analyzes which product flavours are most frequently promoted. Understanding the most promoted flavours helps identify marketing focus areas and consumer preferences, providing insights into promotional strategies and potential demand drivers.",
+        "question_sql": "SELECT product_flavour, COUNT(*) AS promo_count FROM sales_data WHERE promo_active_flag = 1 GROUP BY product_flavour ORDER BY promo_count DESC;",
+        "answer_template": "The most promoted flavour is {product_flavour} with {promo_count} promotions.",
+        "question_sql_template": "SELECT product_flavour, COUNT(*) AS promo_count FROM sales_data WHERE promo_active_flag = 1 GROUP BY product_flavour ORDER BY promo_count DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 59,
+        "question_example": "How does discount depth affect net price realization?",
+        "question_complexity": "advanced",
+        "question_type": "How does discount depth affect net price realization?",
+        "question_description": "This question analyzes the impact of discount depth on net price realization. It explores how varying levels of discounts affect the net price achieved for products, providing insights into pricing strategy effectiveness and potential revenue implications.",
+        "question_sql": "SELECT promo_type, promo_mechanic, AVG(discount_pct) AS avg_discount_pct, AVG(net_price_lcl) AS avg_net_price FROM sales_data WHERE promo_active_flag = 1 GROUP BY promo_type, promo_mechanic ORDER BY avg_discount_pct DESC;",
+        "answer_template": "The average discount percentage for {promo_type} with {promo_mechanic} is {avg_discount_pct}%, resulting in an average net price of {avg_net_price} LCL.",
+        "question_sql_template": "SELECT promo_type, promo_mechanic, AVG(discount_pct) AS avg_discount_pct, AVG(net_price_lcl) AS avg_net_price FROM sales_data WHERE promo_active_flag = 1 GROUP BY promo_type, promo_mechanic ORDER BY avg_discount_pct DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 60,
+        "question_example": "What is the promo uplift on sell-out vs non-promo periods?",
+        "question_complexity": "advanced",
+        "question_type": "What is the promo uplift on sell-out vs non-promo periods?",
+        "question_description": "This question analyzes the impact of promotional activities on sell-out volumes compared to non-promo periods. It helps identify the effectiveness of promotions in driving sales, providing insights into how promotional strategies influence consumer purchasing behavior.",
+        "question_sql": "SELECT period_id, promo_active_flag, SUM(so_units) AS total_sell_out_units FROM sales_data GROUP BY period_id, promo_active_flag ORDER BY period_id, promo_active_flag;",
+        "answer_template": "During {period_id}, the total sell-out units were {total_sell_out_units} for {promo_status} periods.",
+        "question_sql_template": "SELECT period_id, promo_active_flag, SUM(so_units) AS total_sell_out_units FROM sales_data WHERE period_id BETWEEN {{start_period_id}} AND {{end_period_id}} GROUP BY period_id, promo_active_flag ORDER BY period_id, promo_active_flag;",
+        "question_inputs": [
+            {
+                "name": "start_period_id",
+                "type": "numeric",
+                "example": 202401,
+                "unique_values": null
+            },
+            {
+                "name": "end_period_id",
+                "type": "numeric",
+                "example": 202509,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 61,
+        "question_example": "Which promo types/mechanics yield highest value per unit?",
+        "question_complexity": "advanced",
+        "question_type": "Which promo types/mechanics yield highest value per unit?",
+        "question_description": "This question analyzes which promotion types and mechanics yield the highest value per unit sold. Understanding the effectiveness of different promotional strategies helps businesses optimize their marketing efforts and maximize revenue. Insights from this analysis can guide future promotional planning and resource allocation.",
+        "question_sql": "SELECT promo_type, promo_mechanic, SUM(so_value_lcl) / SUM(so_units) AS value_per_unit FROM sales_data WHERE promo_active_flag = 1 GROUP BY promo_type, promo_mechanic ORDER BY value_per_unit DESC;",
+        "answer_template": "The highest value per unit is achieved with {promo_type} promotions using {promo_mechanic} mechanics, yielding {value_per_unit} LCL per unit.",
+        "question_sql_template": "SELECT promo_type, promo_mechanic, SUM(so_value_lcl) / SUM(so_units) AS value_per_unit FROM sales_data WHERE promo_active_flag = 1 GROUP BY promo_type, promo_mechanic ORDER BY value_per_unit DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 62,
+        "question_example": "Do features/displays drive higher uplift than price-only?",
+        "question_complexity": "advanced",
+        "question_type": "Do features/displays drive higher uplift than price-only?",
+        "question_description": "This question analyzes the effectiveness of promotional features and displays compared to price-only promotions in driving sell-out volume uplift. It provides insights into which promotional strategies are more effective in increasing demand, helping businesses optimize their promotional tactics.",
+        "question_sql": "SELECT promo_type, promo_mechanic, AVG(so_units) AS avg_sell_out_units FROM sales_data WHERE promo_active_flag = 1 GROUP BY promo_type, promo_mechanic ORDER BY avg_sell_out_units DESC;",
+        "answer_template": "Promotional strategies involving {promo_type} with {promo_mechanic} result in an average sell-out of {avg_sell_out_units} units.",
+        "question_sql_template": "SELECT promo_type, promo_mechanic, AVG(so_units) AS avg_sell_out_units FROM sales_data WHERE promo_active_flag = 1 GROUP BY promo_type, promo_mechanic ORDER BY avg_sell_out_units DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 63,
+        "question_example": "Are discounts deeper in channel 45 than 20?",
+        "question_complexity": "simple",
+        "question_type": "Are discounts deeper in channel 45 than 20?",
+        "question_description": "This question analyzes whether the discounts offered in distribution channel 45 are deeper than those in channel 20. Understanding the depth of discounts by channel can provide insights into pricing strategies and promotional effectiveness, which are crucial for optimizing sales and marketing efforts.",
+        "question_sql": "SELECT distribution_channel, AVG(discount_pct) AS average_discount_pct FROM sales_data WHERE distribution_channel IN (20, 45) GROUP BY distribution_channel ORDER BY average_discount_pct DESC;",
+        "answer_template": "The average discount percentage in distribution channel {distribution_channel} is {average_discount_pct}%.",
+        "question_sql_template": "SELECT distribution_channel, AVG(discount_pct) AS average_discount_pct FROM sales_data WHERE distribution_channel IN ({{channel_1}}, {{channel_2}}) GROUP BY distribution_channel ORDER BY average_discount_pct DESC;",
+        "question_inputs": [
+            {
+                "name": "channel_1",
+                "type": "categorical",
+                "example": 20,
+                "unique_values": [
+                    20,
+                    45
+                ]
+            },
+            {
+                "name": "channel_2",
+                "type": "categorical",
+                "example": 45,
+                "unique_values": [
+                    20,
+                    45
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 64,
+        "question_example": "How aligned are sell-in and sell-out month to month?",
+        "question_complexity": "advanced",
+        "question_type": "How aligned are sell-in and sell-out month to month?",
+        "question_description": "This question analyzes the alignment between sell-in and sell-out volumes on a month-to-month basis. It is crucial for understanding the balance between supply and demand, identifying potential overstock or stockout situations, and ensuring efficient inventory management. Insights from this analysis can help optimize production and distribution strategies.",
+        "question_sql": "SELECT period_id, SUM(si_invoices_cases) AS total_sell_in_cases, SUM(so_units) AS total_sell_out_units FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "In {period_id}, the total sell-in volume was {total_sell_in_cases} cases, while the total sell-out volume was {total_sell_out_units} units.",
+        "question_sql_template": "SELECT period_id, SUM(si_invoices_cases) AS total_sell_in_cases, SUM(so_units) AS total_sell_out_units FROM sales_data GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 65,
+        "question_example": "Does pre-promo sell-in ramp up ahead of promo periods?",
+        "question_complexity": "advanced",
+        "question_type": "Does pre-promo sell-in ramp up ahead of promo periods?",
+        "question_description": "This question analyzes whether there is an increase in sell-in volume before promotional periods, indicating potential forward-buying behavior. Understanding this pattern helps businesses anticipate inventory needs and optimize supply chain operations during promotional campaigns.",
+        "question_sql": "SELECT period_id, SUM(si_invoices_cases) AS total_sell_in_cases, promo_active_flag FROM sales_data WHERE promo_active_flag = 1 GROUP BY period_id ORDER BY period_id;",
+        "answer_template": "During the promotional period ending in {period_id}, the total sell-in volume was {total_sell_in_cases} cases.",
+        "question_sql_template": "SELECT period_id, SUM(si_invoices_cases) AS total_sell_in_cases, promo_active_flag FROM sales_data WHERE promo_active_flag = {{promo_active_flag}} GROUP BY period_id ORDER BY period_id;",
+        "question_inputs": [
+            {
+                "name": "promo_active_flag",
+                "type": "boolean",
+                "example": 1,
+                "unique_values": [
+                    0,
+                    1
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 66,
+        "question_example": "How do promotions impact days of supply?",
+        "question_complexity": "advanced",
+        "question_type": "How do promotions impact days of supply?",
+        "question_description": "This question analyzes the impact of promotional activities on the days of supply for products. Understanding this relationship is crucial for inventory management, as promotions can significantly affect stock levels and availability. Insights from this analysis help in planning inventory to avoid stockouts or overstock situations during promotional periods.",
+        "question_sql": "SELECT period_id, promo_active_flag, AVG(days_of_supply) AS avg_days_of_supply FROM sales_data WHERE promo_active_flag = 1 GROUP BY period_id, promo_active_flag ORDER BY period_id;",
+        "answer_template": "During promotional periods in {period_id}, the average days of supply was {avg_days_of_supply}.",
+        "question_sql_template": "SELECT period_id, promo_active_flag, AVG(days_of_supply) AS avg_days_of_supply FROM sales_data WHERE promo_active_flag = {{promo_active_flag}} GROUP BY period_id, promo_active_flag ORDER BY period_id;",
+        "question_inputs": [
+            {
+                "name": "promo_active_flag",
+                "type": "boolean",
+                "example": 1,
+                "unique_values": [
+                    0,
+                    1
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 67,
+        "question_example": "What is the effect of promotions on market share?",
+        "question_complexity": "advanced",
+        "question_type": "What is the effect of promotions on market share?",
+        "question_description": "This question analyzes the impact of promotional activities on market share, examining how promotions influence both unit and value share percentages. Understanding this effect is crucial for assessing the effectiveness of promotional strategies and their contribution to competitive positioning in the market.",
+        "question_sql": "SELECT period_id, promo_active_flag, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data WHERE promo_active_flag = 1 GROUP BY period_id, promo_active_flag ORDER BY period_id;",
+        "answer_template": "During promotional periods, the average market share in terms of units was {avg_share_units_pct}% and in terms of value was {avg_share_value_pct}% for the period ending {period_id}.",
+        "question_sql_template": "SELECT period_id, promo_active_flag, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data WHERE promo_active_flag = {{promo_active_flag}} GROUP BY period_id, promo_active_flag ORDER BY period_id;",
+        "question_inputs": [
+            {
+                "name": "promo_active_flag",
+                "type": "boolean",
+                "example": 1,
+                "unique_values": [
+                    0,
+                    1
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 68,
+        "question_example": "How does net price and discount depth relate to share?",
+        "question_complexity": "advanced",
+        "question_type": "How does net price and discount depth relate to share?",
+        "question_description": "This question analyzes the relationship between net price, discount depth, and market share. It explores how pricing strategies and promotional discounts impact the company's market position, providing insights into the effectiveness of pricing tactics in driving market share.",
+        "question_sql": "SELECT category, AVG(net_price_lcl) AS avg_net_price, AVG(discount_pct) AS avg_discount_pct, AVG(share_units_pct) AS avg_share_units_pct FROM sales_data WHERE promo_active_flag = 1 GROUP BY category ORDER BY avg_share_units_pct DESC;",
+        "answer_template": "For the {category} category, the average net price is {avg_net_price} LCL, the average discount depth is {avg_discount_pct}%, and the average unit share is {avg_share_units_pct}%.",
+        "question_sql_template": "SELECT category, AVG(net_price_lcl) AS avg_net_price, AVG(discount_pct) AS avg_discount_pct, AVG(share_units_pct) AS avg_share_units_pct FROM sales_data WHERE promo_active_flag = 1 GROUP BY category ORDER BY avg_share_units_pct DESC;",
+        "question_inputs": []
+    },
+    {
+        "question_id": 69,
+        "question_example": "Do higher returns rates coincide with lower sell-out and higher stock?",
+        "question_complexity": "advanced",
+        "question_type": "Do higher returns rates coincide with lower sell-out and higher stock?",
+        "question_description": "This question analyzes the relationship between higher returns rates and their potential impact on sell-out volumes and closing stock levels. Understanding this relationship is crucial for identifying potential quality issues or inefficiencies in inventory management, which can affect overall sales performance and stock availability.",
+        "question_sql": "SELECT region_code, period_id, AVG(si_returns_rate) AS avg_returns_rate, AVG(so_units) AS avg_sell_out_units, AVG(closing_stock_units) AS avg_closing_stock_units FROM sales_data GROUP BY region_code, period_id HAVING AVG(si_returns_rate) > 0.01 ORDER BY avg_returns_rate DESC, avg_sell_out_units ASC, avg_closing_stock_units DESC LIMIT 10;",
+        "answer_template": "In {region_code} during {period_id}, the average returns rate was {avg_returns_rate}, with an average sell-out of {avg_sell_out_units} units and an average closing stock of {avg_closing_stock_units} units.",
+        "question_sql_template": "SELECT region_code, period_id, AVG(si_returns_rate) AS avg_returns_rate, AVG(so_units) AS avg_sell_out_units, AVG(closing_stock_units) AS avg_closing_stock_units FROM sales_data GROUP BY region_code, period_id HAVING AVG(si_returns_rate) > {{returns_rate_threshold}} ORDER BY avg_returns_rate DESC, avg_sell_out_units ASC, avg_closing_stock_units DESC LIMIT {{limit}};",
+        "question_inputs": [
+            {
+                "name": "returns_rate_threshold",
+                "type": "numeric",
+                "example": 0.01,
+                "unique_values": null
+            },
+            {
+                "name": "limit",
+                "type": "numeric",
+                "example": 10,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 70,
+        "question_example": "Where do sustained sell-in > sell-out lead to inventory build?",
+        "question_complexity": "advanced",
+        "question_type": "Where do sustained sell-in > sell-out lead to inventory build?",
+        "question_description": "This question analyzes where sustained sell-in volumes exceed sell-out volumes, leading to an accumulation of inventory. It is important for identifying potential overstock situations that could tie up capital and increase storage costs. Insights from this analysis can help optimize inventory management and improve supply chain efficiency.",
+        "question_sql": "SELECT period_id, region_code, category, SUM(si_invoices_cases) AS total_sell_in, SUM(so_units) AS total_sell_out, SUM(closing_stock_units) AS total_closing_stock FROM sales_data GROUP BY period_id, region_code, category HAVING SUM(si_invoices_cases) > SUM(so_units) ORDER BY total_closing_stock DESC;",
+        "answer_template": "In {period_id}, the {category} category in the {region_code} region had a sustained sell-in of {total_sell_in} cases, exceeding the sell-out of {total_sell_out} cases, leading to a closing stock of {total_closing_stock} units.",
+        "question_sql_template": "SELECT period_id, region_code, category, SUM(si_invoices_cases) AS total_sell_in, SUM(so_units) AS total_sell_out, SUM(closing_stock_units) AS total_closing_stock FROM sales_data WHERE period_id = {{period_id}} AND region_code = '{{region_code}}' AND category = '{{category}}' GROUP BY period_id, region_code, category HAVING SUM(si_invoices_cases) > SUM(so_units) ORDER BY total_closing_stock DESC;",
+        "question_inputs": [
+            {
+                "name": "period_id",
+                "type": "numeric",
+                "example": 202401,
+                "unique_values": [
+                    202401,
+                    202402,
+                    202403,
+                    202404,
+                    202405,
+                    202406,
+                    202407,
+                    202408,
+                    202409,
+                    202501,
+                    202502,
+                    202503,
+                    202504,
+                    202505,
+                    202506,
+                    202507,
+                    202508,
+                    202509
+                ]
+            },
+            {
+                "name": "region_code",
+                "type": "categorical",
+                "example": "JAL",
+                "unique_values": [
+                    "JAL",
+                    "SLP",
+                    "TMS"
+                ]
+            },
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 71,
+        "question_example": "Are channel-level promo strategies reflected in share gains?",
+        "question_complexity": "advanced",
+        "question_type": "Are channel-level promo strategies reflected in share gains?",
+        "question_description": "This question analyzes whether promotional strategies at the distribution channel level are associated with gains in market share. It examines the relationship between the frequency and type of promotions and the resulting changes in unit share percentage, providing insights into the effectiveness of promotional tactics in driving competitive advantage.",
+        "question_sql": "SELECT distribution_channel, promo_active_flag, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data WHERE promo_active_flag = 1 GROUP BY distribution_channel, promo_active_flag ORDER BY avg_share_units_pct DESC;",
+        "answer_template": "For distribution channel {distribution_channel}, the average unit share percentage during promotional periods is {avg_share_units_pct}%, and the average value share percentage is {avg_share_value_pct}%.",
+        "question_sql_template": "SELECT distribution_channel, promo_active_flag, AVG(share_units_pct) AS avg_share_units_pct, AVG(share_value_pct) AS avg_share_value_pct FROM sales_data WHERE promo_active_flag = {{promo_active_flag}} GROUP BY distribution_channel, promo_active_flag ORDER BY avg_share_units_pct DESC;",
+        "question_inputs": [
+            {
+                "name": "promo_active_flag",
+                "type": "boolean",
+                "example": 1,
+                "unique_values": [
+                    0,
+                    1
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 72,
+        "question_example": "How does packaging influence promo ROI and share?",
+        "question_complexity": "advanced",
+        "question_type": "How does packaging influence promo ROI and share?",
+        "question_description": "This question analyzes how different packaging formats influence the return on investment (ROI) of promotions and their impact on market share. Understanding this relationship helps businesses optimize packaging strategies to maximize promotional effectiveness and competitive positioning.",
+        "question_sql": "SELECT packaging_code, AVG(so_units * net_price_lcl - so_units * retail_price_lcl * discount_pct / 100) AS promo_roi, AVG(share_units_pct) AS avg_share_units_pct FROM sales_data WHERE promo_active_flag = 1 GROUP BY packaging_code ORDER BY promo_roi DESC;",
+        "answer_template": "The average promotional ROI for packaging {packaging_code} is {promo_roi}, with an average market share of {avg_share_units_pct}%.",
+        "question_sql_template": "SELECT packaging_code, AVG(so_units * net_price_lcl - so_units * retail_price_lcl * discount_pct / 100) AS promo_roi, AVG(share_units_pct) AS avg_share_units_pct FROM sales_data WHERE promo_active_flag = 1 GROUP BY packaging_code ORDER BY promo_roi DESC;",
+        "question_inputs": [
+            {
+                "name": "packaging_code",
+                "type": "categorical",
+                "example": "PET",
+                "unique_values": [
+                    "CAN",
+                    "GLS",
+                    "PET"
+                ]
+            }
+        ]
+    },
+    {
+        "question_id": 73,
+        "question_example": "Do regions with higher promo incidence show larger YoY sell-out growth?",
+        "question_complexity": "advanced",
+        "question_type": "Do regions with higher promo incidence show larger YoY sell-out growth?",
+        "question_description": "This question analyzes whether regions with higher promotional activity experience greater year-over-year (YoY) growth in sell-out volumes. It provides insights into the effectiveness of promotional strategies in driving demand across different regions, helping to identify areas where promotions are most impactful.",
+        "question_sql": "SELECT sd1.region_code, SUM(CASE WHEN sd1.promo_active_flag = 1 THEN 1 ELSE 0 END) AS promo_count_2024, SUM(sd1.so_units) AS sell_out_2024, SUM(sd2.so_units) AS sell_out_2025, ((SUM(sd2.so_units) - SUM(sd1.so_units)) / SUM(sd1.so_units)) * 100 AS yoy_growth FROM sales_data sd1 JOIN sales_data sd2 ON sd1.region_code = sd2.region_code AND sd1.product_salesarea_sk = sd2.product_salesarea_sk AND sd1.customer_salesarea_sk = sd2.customer_salesarea_sk WHERE sd1.period_id BETWEEN 202401 AND 202409 AND sd2.period_id BETWEEN 202501 AND 202509 GROUP BY sd1.region_code ORDER BY yoy_growth DESC;",
+        "answer_template": "In the region {region_code}, there were {promo_count_2024} promotions in 2024. The sell-out volume grew by {yoy_growth}% from 2024 to 2025.",
+        "question_sql_template": "SELECT sd1.region_code, SUM(CASE WHEN sd1.promo_active_flag = 1 THEN 1 ELSE 0 END) AS promo_count_2024, SUM(sd1.so_units) AS sell_out_2024, SUM(sd2.so_units) AS sell_out_2025, ((SUM(sd2.so_units) - SUM(sd1.so_units)) / SUM(sd1.so_units)) * 100 AS yoy_growth FROM sales_data sd1 JOIN sales_data sd2 ON sd1.region_code = sd2.region_code AND sd1.product_salesarea_sk = sd2.product_salesarea_sk AND sd1.customer_salesarea_sk = sd2.customer_salesarea_sk WHERE sd1.period_id BETWEEN {{start_period_2024}} AND {{end_period_2024}} AND sd2.period_id BETWEEN {{start_period_2025}} AND {{end_period_2025}} GROUP BY sd1.region_code ORDER BY yoy_growth DESC;",
+        "question_inputs": [
+            {
+                "name": "start_period_2024",
+                "type": "numeric",
+                "example": 202401,
+                "unique_values": null
+            },
+            {
+                "name": "end_period_2024",
+                "type": "numeric",
+                "example": 202409,
+                "unique_values": null
+            },
+            {
+                "name": "start_period_2025",
+                "type": "numeric",
+                "example": 202501,
+                "unique_values": null
+            },
+            {
+                "name": "end_period_2025",
+                "type": "numeric",
+                "example": 202509,
+                "unique_values": null
+            }
+        ]
+    },
+    {
+        "question_id": 74,
+        "question_example": "How does ASP (sell-in) align with realized net price (sell-out)?",
+        "question_complexity": "advanced",
+        "question_type": "How does ASP (sell-in) align with realized net price (sell-out)?",
+        "question_description": "This question analyzes the alignment between the average selling price (ASP) during sell-in and the realized net price during sell-out. It provides insights into pricing consistency across the supply chain and helps identify discrepancies that could indicate pricing strategy issues or market dynamics affecting price realization.",
+        "question_sql": "SELECT category, AVG(si_asp_value_per_case) AS avg_asp_sell_in, AVG(net_price_lcl) AS avg_net_price_sell_out FROM sales_data GROUP BY category ORDER BY category;",
+        "answer_template": "For the {category} category, the average ASP during sell-in is {avg_asp_sell_in} LCL, while the realized net price during sell-out is {avg_net_price_sell_out} LCL.",
+        "question_sql_template": "SELECT category, AVG(si_asp_value_per_case) AS avg_asp_sell_in, AVG(net_price_lcl) AS avg_net_price_sell_out FROM sales_data GROUP BY category ORDER BY category;",
+        "question_inputs": [
+            {
+                "name": "category",
+                "type": "categorical",
+                "example": "CSD",
+                "unique_values": [
+                    "CSD",
+                    "JUICE",
+                    "WATER"
+                ]
+            }
+        ]
     }
 ]

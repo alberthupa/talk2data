@@ -323,9 +323,31 @@ def main() -> None:
 
         clarification_input = None
         if state.get("awaiting_clarification"):
+            # If a scenario-specific hint exists, print it and use as placeholder
+            placeholder_text = "e.g., July 2025 for Biscuits in Brazil…"
+            try:
+                scenarios = _load_scenarios()
+                qt = state.get("query_type")
+                hint = None
+                if scenarios and qt:
+                    for sc in scenarios:
+                        if (
+                            sc.get("question_example") == qt
+                            or sc.get("question_type") == qt
+                            or sc.get("question_id") == qt
+                        ):
+                            hint = sc.get("hint")
+                            break
+                if hint:
+                    print(hint)
+                    placeholder_text = hint
+            except Exception:
+                # Fallback silently if scenarios cannot be loaded/parsed
+                pass
+
             clarification_input = st.text_input(
                 "Provide missing details",
-                placeholder="e.g., July 2025 for Biscuits in Brazil…",
+                placeholder=placeholder_text,
                 key="clarification_input",
             )
 
