@@ -21,6 +21,10 @@ This project is a conversational assistant that takes user questions, matches th
   - **High certainty (≥8)**: Direct to parameter extraction
   - **Medium certainty (2-7)**: Confirmation with options
   - **Low certainty (<2)**: Clarification request
+ - Non-first turn with low/mid certainty: lightweight LLM intent check over recent messages to detect one of:
+   - **QUESTION** → keep detected scenario and proceed with mid certainty (to confirmation/generic SQL)
+   - **FOLLOWUP** → keep previous scenario type and jump directly to parameter extraction
+   - **SAVING_SCENARIO** → route to adding_scenario_node (acknowledge save)
 
 ### ⚡ Generic SQL Generation (NEW)
 - **LLM-powered custom queries** when predefined scenarios don't match perfectly
@@ -32,6 +36,7 @@ This project is a conversational assistant that takes user questions, matches th
   3. **No** - Reject and reclassify
 - Bypasses parameter extraction for ad-hoc queries
 - Full error handling with user-friendly messages
+ - After answering, the assistant asks whether to save the Q&A as a scenario; replying yes triggers the `SAVING_SCENARIO` path handled by `adding_scenario_node`
 
 ### 📊 Structured Outputs
 - **Native structured outputs** for Azure OpenAI/OpenAI using `beta.chat.completions.parse()`
@@ -84,6 +89,7 @@ LangGraph pipeline nodes that handle different stages of conversation:
 - **`node_answering.py`** - Generates natural language responses from SQL results using the LLM, following the answer template style from scenarios.
 
 - **`node_low_certainty.py`** - Handles queries that don't match any scenario or have very low certainty (<2).
+- **`node_adding_scenario.py`** - Handles the `SAVING_SCENARIO` intent by acknowledging scenario storage (future: persist to library).
 
 ### Configuration Files
 
@@ -139,11 +145,16 @@ LangGraph Pipeline:
     |       |       |
     |       |       +---> Option 2: Generic SQL ---> Generic SQL Node
     |       |       |                                   |
-    |       |       |                                   +---> Answering Node
+    |       |       |                                   +---> Answering Node (asks to save)
     |       |       |
     |       |       +---> Option 3: No ---> Reclassify
     |       |
     |       +---> Low certainty (<2) ---> Low Certainty Handler
+    |       |
+    |       +---> Non-first turn & low/mid certainty → LLM intent:
+    |               - QUESTION → Confirmation
+    |               - FOLLOWUP → Parameter Extraction (keep previous scenario)
+    |               - SAVING_SCENARIO → Adding Scenario Node
     |
     +---> Parameter Extraction Node (extract required params)
     |       |
@@ -158,6 +169,8 @@ LangGraph Pipeline:
     +---> Generic SQL Node (LLM-generated custom query)
     |       |
     |       +---> Answering Node (if successful)
+    |
+    +---> Adding Scenario Node (acknowledge saving)
     |
     +---> Answering Node (generate natural language response)
             |
@@ -545,6 +558,7 @@ talk2data/
 ├── scenarios.json           # Question scenarios & SQL templates
 ├── llm_config.yaml          # Available LLM models by provider
 ├── sql_data.db              # SQLite database (market data)
+├── data_description.md      # Complete dataset schema & KPI documentation
 │
 ├── QUICK_START_LLM.md       # User quick start guide
 ├── CLAUDE.md                # Claude Code instructions
@@ -579,11 +593,15 @@ All available scenarios are documented in the **Scenarios** tab of the Streamlit
 
 ## Data Information
 
-- **Data Period**: January - September 2025
-- **Data Type**: Artificial data generated for POC purposes
-- **Metrics**: Net Revenue, Gross Profit, Operating Income, Volume
-- **Dimensions**: Region, Country, Category, Sub-category, Brand
-- **Source**: Available in Streamlit "Source Data" tab
+- **Data Period**: January - September 2025 (explicitly 2024-01 to 2024-09 and 2025-01 to 2025-09)
+- **Data Type**: Synthetic beverages dataset for POC purposes covering Point-of-Customer (POC) analytics
+- **Domain Coverage**: POC Sell-In, POC Sell-Out, Trade Inventory, Market Share, Promotions
+- **Geography**: Mexico (MX) with region/city and Nielsen market IDs
+- **Grain**: One row per period × customer_salesarea_sk (POC) × product_salesarea_sk
+- **Metrics**: Net Revenue, Gross Profit, Operating Income, Volume, ASP, Returns Rate, Days of Supply, Market Share
+- **Dimensions**: Region, Country, Category (CSD, JUICE, WATER), Product Flavour, Packaging, Distribution Channel
+- **Detailed Schema**: See `data_description.md` for complete column definitions, KPIs, generation logic, and topic mapping
+- **Source**: Available in Streamlit "Source Data" tab with full documentation
 
 ## Troubleshooting
 

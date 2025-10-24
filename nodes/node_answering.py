@@ -133,6 +133,11 @@ Generate the response now:"""
             sql_details = state.get("generic_sql_details")
             if sql_details:
                 final_response = f"{sql_details}\n---\n\n### Business Analysis\n\n{generated_response}"
+            final_response = (
+                f"{final_response.rstrip()}\n\n"
+                "if you are satisified with this answer, do you want me to store your question "
+                "and answer template to the scenario library?"
+            )
 
         return {
             "messages": [AIMessage(content=final_response)],

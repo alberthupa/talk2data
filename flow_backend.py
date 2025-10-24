@@ -29,6 +29,7 @@ from nodes import (
     confirmation_node as confirmation_node_impl,
     generic_sql_node as generic_sql_node_impl,
     low_certainty_node as low_certainty_node_impl,
+    adding_scenario_node as adding_scenario_node_impl,
     parameter_extraction_node as parameter_extraction_node_impl,
     sql_node as sql_node_impl,
 )
@@ -567,10 +568,17 @@ class FlowBackend:
     def route_after_classification(
         self, state: ConversationState
     ) -> Literal[
-        "parameter_extraction_node", "confirmation_node", "low_certainty_node"
+        "parameter_extraction_node",
+        "confirmation_node",
+        "low_certainty_node",
+        "adding_scenario_node",
     ]:
         """Routes based on certainty level."""
         query_type = state.get("query_type")
+
+        if query_type == "SAVING_SCENARIO":
+            print("[ROUTER] Saving scenario intent detected → adding_scenario_node")
+            return "adding_scenario_node"
 
         if query_type == "OTHER":
             print("[ROUTER] Query classified as OTHER → low certainty handler")
@@ -612,6 +620,7 @@ class FlowBackend:
         graph.add_node("low_certainty_node", partial(low_certainty_node_impl, self))
         graph.add_node("clarification_node", partial(clarification_node_impl, self))
         graph.add_node("generic_sql_node", partial(generic_sql_node_impl, self))
+        graph.add_node("adding_scenario_node", partial(adding_scenario_node_impl, self))
 
         graph.add_edge(START, "classifier_node")
 
@@ -622,6 +631,7 @@ class FlowBackend:
                 "parameter_extraction_node": "parameter_extraction_node",
                 "confirmation_node": "confirmation_node",
                 "low_certainty_node": "low_certainty_node",
+                "adding_scenario_node": "adding_scenario_node",
             },
         )
 
@@ -639,6 +649,7 @@ class FlowBackend:
         graph.add_edge("low_certainty_node", END)
         graph.add_edge("confirmation_node", END)
         graph.add_edge("clarification_node", END)
+        graph.add_edge("adding_scenario_node", END)
 
         return graph.compile()
 

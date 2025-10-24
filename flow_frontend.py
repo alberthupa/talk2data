@@ -422,6 +422,17 @@ def main() -> None:
     # Tab 4: Source Data
     with tab4:
         st.header("Source Data")
+
+        # Display data description if file exists
+        try:
+            with open("data_description.md", "r") as f:
+                data_description = f.read()
+            st.markdown(data_description)
+        except FileNotFoundError:
+            st.info("There will be inserted data description.")
+
+        st.markdown("---")
+
         st.markdown("""
         ### Download Source Data
 

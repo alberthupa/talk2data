@@ -1,0 +1,49 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    Start(["User Input"]) --> Backend["FlowBackend.run_conversation"]
+    Backend --> InitLLM["Initialize/Retrieve LLM Client"]
+    InitLLM --> Pipeline["LangGraph Pipeline"]
+    Pipeline --> Classifier["Classifier Node<br>classify query type"]
+    Classifier -- High certainty ≥8 --> ParamExtract["Parameter Extraction Node"]
+    Classifier -- "Medium certainty 2-7" --> Confirmation["Confirmation Node"]
+    Confirmation -- Option 1: Confirm --> ParamExtract
+    Confirmation -- Option 2: Generic SQL --> GenericSQL["Generic SQL Node"]
+    Confirmation -- Option 3: No --> Reclassify["Reclassify"]
+    Reclassify --> Classifier
+    Classifier -- Low certainty &lt;2 --> LowCertainty["Low Certainty Handler"]
+    LowCertainty --> Return(["Return to User"])
+    Classifier -- "Non-first turn & low/mid" --> LLMIntent["LLM Intent Check<br>QUESTION / FOLLOWUP / SAVING_SCENARIO"]
+    LLMIntent -- QUESTION --> Confirmation
+    LLMIntent -- FOLLOWUP --> ParamExtract
+    LLMIntent -- SAVING_SCENARIO --> AddScenario["Adding Scenario Node"]
+    AddScenario --> Return
+    ParamExtract -- All params found --> SQL["SQL Node<br>generate &amp; execute<br>template-based query"]
+    ParamExtract -- Missing params --> Clarification["Clarification Node"]
+    Clarification --> Return
+    SQL --> Answering["Answering Node<br>generate natural<br>language response"]
+    GenericSQL -- Success --> Answering
+    GenericSQL -- Failure --> Return
+    Answering --> Return
+     Start:::startEnd
+     Backend:::process
+     InitLLM:::process
+     Pipeline:::process
+     Classifier:::decision
+     ParamExtract:::process
+     Confirmation:::decision
+     GenericSQL:::process
+     Reclassify:::process
+     LowCertainty:::process
+     Return:::startEnd
+     LLMIntent:::decision
+     AddScenario:::process
+     SQL:::process
+     Clarification:::process
+     Answering:::process
+    classDef startEnd fill:#e1f5e1,stroke:#4caf50,stroke-width:3px
+    classDef process fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    classDef critical fill:#fce4ec,stroke:#e91e63,stroke-width:2px
