@@ -22,11 +22,13 @@ flowchart TD
     AddScenario --> Return
     ParamExtract -- All params found --> SQL["SQL Node<br>generate &amp; execute<br>template-based query"]
     ParamExtract -- Missing params --> Clarification["Clarification Node"]
-    Clarification --> Return
+    Clarification --> Return & n2["Untitled Node"]
     SQL --> Answering["Answering Node<br>generate natural<br>language response"]
     GenericSQL -- Success --> Answering
     GenericSQL -- Failure --> Return
     Answering --> Return
+    LLMIntent --> n1["Addiing scenario Node"]
+    n1 --> Return
      Start:::startEnd
      Backend:::process
      InitLLM:::process
