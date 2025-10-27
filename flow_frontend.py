@@ -55,44 +55,48 @@ def _render_sidebar(state: dict, backend: FlowBackend, llm_config: dict) -> None
     with st.sidebar:
         st.header("⚙️ Settings")
 
-        # LLM Model Selection
-        st.subheader("LLM Model")
+        # Check if running on Azure (or any production environment)
+        IS_PRODUCTION = os.getenv("ENVIRONMENT") == "production"
 
-        # Build list of available models
-        model_options = []
-        for location, models in llm_config.items():
-            for model in models:
-                model_options.append(f"{location}:{model}")
+        # LLM Model Selection (only in production)
+        if not IS_PRODUCTION:
+            st.subheader("LLM Model")
 
-        # Add default option if no config
-        if not model_options:
-            model_options = ["gpt-4o"]
+            # Build list of available models
+            model_options = []
+            for location, models in llm_config.items():
+                for model in models:
+                    model_options.append(f"{location}:{model}")
 
-        # Current model from session state
-        current_model = st.session_state.get("selected_llm_model", "gpt-4o")
+            # Add default option if no config
+            if not model_options:
+                model_options = ["gpt-4o"]
 
-        # Find index of current model
-        try:
-            current_index = model_options.index(current_model)
-        except ValueError:
-            current_index = 0
+            # Current model from session state
+            current_model = st.session_state.get("selected_llm_model", "gpt-4o")
 
-        selected_model = st.selectbox(
-            "Select LLM Model",
-            options=model_options,
-            index=current_index,
-            help="Choose which LLM model to use for the conversation",
-        )
+            # Find index of current model
+            try:
+                current_index = model_options.index(current_model)
+            except ValueError:
+                current_index = 0
 
-        # Update state if model changed
-        if selected_model != st.session_state.get("selected_llm_model"):
-            st.session_state["selected_llm_model"] = selected_model
-            # Update the state's LLM model input to trigger reinitialization
-            if "flow_state" in st.session_state:
-                st.session_state["flow_state"]["llm_model_input"] = selected_model
-                # Clear client to force reinitialization
-                st.session_state["flow_state"]["llm_client"] = None
-            st.info(f"Switched to: {selected_model}")
+            selected_model = st.selectbox(
+                "Select LLM Model",
+                options=model_options,
+                index=current_index,
+                help="Choose which LLM model to use for the conversation",
+            )
+
+            # Update state if model changed
+            if selected_model != st.session_state.get("selected_llm_model"):
+                st.session_state["selected_llm_model"] = selected_model
+                # Update the state's LLM model input to trigger reinitialization
+                if "flow_state" in st.session_state:
+                    st.session_state["flow_state"]["llm_model_input"] = selected_model
+                    # Clear client to force reinitialization
+                    st.session_state["flow_state"]["llm_client"] = None
+                st.info(f"Switched to: {selected_model}")
 
         st.markdown("---")
 
@@ -131,31 +135,21 @@ def _render_sidebar(state: dict, backend: FlowBackend, llm_config: dict) -> None
             st.rerun()
 
         st.markdown("---")
-        st.markdown("Provide executive summary of performance for HQ")
-        st.markdown("Provide executive summary of YTD performance by region for HQ")
-        st.markdown(
-            "Show top and bottom Gross Profit growth country and category combinations"
-        )
-        st.markdown("Show HQ performance for the Biscuits in July 2025")
-        st.markdown("Show HQ Operational Income performance for the Biscuits in 2025")
-        st.markdown(
-            "What is the Chocolate Other sales volume performance for EU in June 2025 vs forecast?"
-        )
-        st.markdown(
-            "Show me top 10 best and worst performing countries on Biscuit gross profit vs previous year, in terms of growth percentage."
-        )
-        st.markdown(
-            "Show me top 20 countries in terms of L3M category volume growth vs previous year."
-        )
-        st.markdown("Show me historical category trend in Brazil Biscuits")
-        st.markdown(
-            "Show me actual Gross profit Top/Bottom 20 Country/Category Combinations by PY growth"
-        )
-        st.markdown("How was MDLZ performance for the Q2 2025?")
-        st.markdown(
-            "Provide Gross Profit till the end of June vs PY ($MM) Top/Bottom 10 Country/Brand Combinations"
-        )
-        st.markdown("What has changed vs Prior Forecast?")
+        st.subheader("Example Questions")
+
+        # Load scenarios and display top 10 examples
+        scenarios = _load_scenarios()
+        if scenarios:
+            # Get up to 10 question examples
+            examples = [
+                scenario.get("question_example", "No example available")
+                for scenario in scenarios[:10]
+            ]
+
+            for example in examples:
+                st.markdown(f"- {example}")
+        else:
+            st.warning("No example questions available.")
 
 
 def main() -> None:
@@ -184,7 +178,7 @@ def main() -> None:
 
             st.stop()
 
-    st.title("📊 Lingaro - Mondelez GenSights Technical Proof of Concept")
+    st.title("📊 Lingaro SQL Copilot")
     st.caption(
         "Ask data questions about performance metrics. The assistant classifies your query, "
         "extracts required parameters, and returns insightful answers."
@@ -209,58 +203,35 @@ def main() -> None:
     with tab1:
         st.header("Intro")
 
-        st.markdown("""
-        This AI-powered Market Query Assistant transforms natural language questions into actionable business insights
-        by intelligently matching queries to predefined analytical scenarios and automatically extracting relevant
-        parameters. The system leverages conversational AI to understand business questions about performance metrics,
-        execute SQL queries against Mondelez data, and deliver clear, data-driven answers with visual context.
-        """)
-
-        st.markdown("---")
-
-        st.subheader("Scenario Matching")
-
-        st.markdown("""
-        This conversational interface allows you to **ask questions that route to answer scenarios**. Any other questions
-        or vague questions will lead trigger clarification requests. This solution does not allow to go any other
-        scenario other than predetermined and described in tab "Scenarios".
-        
-        You can **see which scenario was matched in the sidebar in the top left corner** of the application.
-        
-        Scenario *total performance of category in year-month* triggered by question *Provide executive summary of performance for HQ* triggers example of **buttons with follow-up questions**.
-
-        **Examples of questions triggering scenarios are presented on the left tab of the application UI**. Users may ask
-        questions with various examples and in various form. Conversational AI matches these questions with some level
-        of certainty. If certainty in matching scenarios is low, the system asks a user for clarification.
-        """)
-
-        st.subheader("Parameter Extraction")
-
-        st.markdown("""
-        Answer **cenarios are always predetermined** queries that need to be filled with questions parameters, like:
-        country, region, product category or a month. You can see these parameters in tab "Scenarios" in sql queries
-        like in this example:
-        """)
-
-        st.code(
-            """WHERE region = '{{region}}'
-    AND sub_category_text = '{{category}}'
-    AND year = {{year}}""",
-            language="sql",
+        st.subheader("What this is (for business users)")
+        st.markdown(
+            """
+            - Ask plain-English questions about market performance (revenue, volume, profit, trends).
+            - If your question matches a known business scenario, the app runs a vetted, deterministic SQL query to answer it.
+            - All available scenarios are listed in the "Scenarios" tab; the sidebar shows which scenario was matched and the certainty (1–10).
+            - If certainty isn’t high, the app either asks you to confirm or can generate a one-off custom SQL query for you (Generic SQL).
+            - After a Generic SQL answer, you can choose to save it as a scenario for future refinement and reuse.
+            """
         )
 
-        st.markdown("""
-        In this example the role of conversational interface is to find out which region, category and year a user
-        is interested in.
-        """)
+        st.subheader("How to use")
+        st.markdown(
+            """
+            - Go to the "Chat" tab and type your question (examples are in the sidebar).
+            - When the system is confident, it answers using a deterministic scenario SQL.
+            - When confidence is medium, you’ll see options: confirm the scenario, use Generic SQL, or reclassify.
+            - Results are explained in plain language and, when relevant, shown as tables.
+            """
+        )
 
-        st.subheader("Data Information")
-
-        st.markdown("""
-        Data presented in the interface is artificial, generated by authors of this POC. As such actual numbers may
-        not be reasonable. Actual dataset used in this UI can be seen in tab "Source Data". Data covers periods
-        **January - September 2025**.
-        """)
+        st.markdown("---")
+        st.subheader("Full README")
+        try:
+            with open("README.md", "r") as f:
+                readme_text = f.read()
+            st.markdown(readme_text)
+        except FileNotFoundError:
+            st.info("README.md not found.")
 
     # Tab 2: Chat interface
     with tab2:
@@ -287,39 +258,7 @@ def main() -> None:
                         # Display as a nice table
                         st.dataframe(df, use_container_width=True)
 
-                if (
-                    role == "assistant"
-                    and i == len(history) - 1
-                    and state.get("query_type")
-                    == "executive_summary_of_performance_for_hq"
-                    and not state.get("awaiting_confirmation")
-                    and not state.get("awaiting_clarification")
-                ):
-                    buttons = st.columns(2)
-                    with buttons[0]:
-                        if st.button(
-                            "Regional breakdown",
-                            key="regional_breakdown_button",
-                            use_container_width=True,
-                        ):
-                            followup_prompt = "Provide executive summary of performance by region for 2025."
-                    with buttons[1]:
-                        if st.button(
-                            "Region and country breakdown",
-                            key="region_country_breakdown_button",
-                            use_container_width=True,
-                        ):
-                            followup_prompt = "Show top 10 and bottom 10 gross profit growth country and category combinations for the Gross Profit (MM) KPI."
-
         confirmation_action = None
-        if state.get("awaiting_confirmation"):
-            col_yes, col_no = st.columns(2)
-            with col_yes:
-                if st.button("Yes ✅", use_container_width=True):
-                    confirmation_action = "yes"
-            with col_no:
-                if st.button("No ❌", use_container_width=True):
-                    confirmation_action = "no"
 
         clarification_input = None
         if state.get("awaiting_clarification"):
@@ -440,7 +379,7 @@ def main() -> None:
         """)
 
         st.markdown(
-            "[Click here to download source data](https://docs.google.com/spreadsheets/d/1YosemXgGERFDHTkPSHj8YdM2Z2XUGw8J/edit?usp=drive_link&ouid=118397130291546262478&rtpof=true&sd=true)"
+            "[Click here to download source data](https://docs.google.com/spreadsheets/d/1nutv2ABuCygA2JvCHKrsAADTPitTLjIKpmVZFM56TAo/edit?usp=sharing)"
         )
 
         st.info(
